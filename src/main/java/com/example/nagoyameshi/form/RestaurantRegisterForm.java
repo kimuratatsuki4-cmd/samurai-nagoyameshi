@@ -45,4 +45,6 @@ public class RestaurantRegisterForm {
    private Integer seatingCapacity;
    
    private List<Integer> categoryIds;
+   
+   private List<Integer> regularHolidayIds;
 }

@@ -20,7 +20,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "restaurants")
 @Data
-@ToString(exclude = "categoriesRestaurants")
+@ToString(exclude = { "categoriesRestaurants", "regularHolidaysRestaurants" })
 public class Restaurant {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -62,9 +62,13 @@ public class Restaurant {
 
 	@Column(name = "updated_at", insertable = false, updatable = false)
 	private Timestamp updatedAt;
-	
+
 	@OneToMany(mappedBy = "restaurant", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
 	@OrderBy("id ASC")
 	private List<CategoryRestaurant> categoriesRestaurants;
+
+	@OneToMany(mappedBy = "restaurant", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+	@OrderBy("id ASC")
+	private List<RegularHolidayRestaurant> regularHolidaysRestaurants;
 
 }

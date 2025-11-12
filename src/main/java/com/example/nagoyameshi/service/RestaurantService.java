@@ -24,11 +24,14 @@ import com.example.nagoyameshi.repository.RestaurantRepository;
 public class RestaurantService {
 	private final RestaurantRepository restaurantRepository;
 	private final CategoryRestaurantService categoryRestaurantService;
+	private final RegularHolidayRestaurantService regularHolidayRestaurantService;
 
 	public RestaurantService(RestaurantRepository restaurantRepository,
-			CategoryRestaurantService categoryRestaurantService) {
+			CategoryRestaurantService categoryRestaurantService,
+			RegularHolidayRestaurantService regularHolidayRestaurantService) {
 		this.restaurantRepository = restaurantRepository;
 		this.categoryRestaurantService = categoryRestaurantService;
+		this.regularHolidayRestaurantService = regularHolidayRestaurantService;
 	}
 
 	// すべての店舗をページングされた状態で取得する
@@ -60,6 +63,7 @@ public class RestaurantService {
 	public void createRestaurant(RestaurantRegisterForm restaurantRegisterForm) {
 		Restaurant restaurant = new Restaurant();
 		List<Integer> categoryIds = restaurantRegisterForm.getCategoryIds();
+		List<Integer> regularholidayIds = restaurantRegisterForm.getRegularHolidayIds();
 		MultipartFile imageFile = restaurantRegisterForm.getImageFile();
 
 		if (!imageFile.isEmpty()) {
@@ -85,12 +89,17 @@ public class RestaurantService {
 		if (categoryIds != null) {
 			categoryRestaurantService.createCategoriesRestaurants(categoryIds, restaurant);
 		}
+
+		if (regularholidayIds != null) {
+			regularHolidayRestaurantService.createRegularHolidaysRestaurants(regularholidayIds, restaurant);
+		}
 	}
 
 	@Transactional
 	public void updateRestaurant(RestaurantEditForm restaurantEditForm, Restaurant restaurant) {
 		MultipartFile imageFile = restaurantEditForm.getImageFile();
 		List<Integer> categoryIds = restaurantEditForm.getCategoryIds();
+		List<Integer> regularholidayIds = restaurantEditForm.getRegularHolidayIds();
 
 		if (!imageFile.isEmpty()) {
 			String imageName = imageFile.getOriginalFilename();
@@ -111,9 +120,13 @@ public class RestaurantService {
 		restaurant.setSeatingCapacity(restaurantEditForm.getSeatingCapacity());
 
 		restaurantRepository.save(restaurant);
-		
+
 		if (categoryIds != null) {
 			categoryRestaurantService.syncCategoriesRestaurants(categoryIds, restaurant);
+		}
+
+		if (regularholidayIds != null) {
+			regularHolidayRestaurantService.syncRegularHolidaysRestaurants(regularholidayIds, restaurant);
 		}
 	}
 
@@ -153,4 +166,5 @@ public class RestaurantService {
 	public boolean isValidBusinessHours(LocalTime openingTime, LocalTime closingTime) {
 		return closingTime.isAfter(openingTime);
 	}
+
 }
