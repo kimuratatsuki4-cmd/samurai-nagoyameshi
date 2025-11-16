@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.nagoyameshi.entity.Role;
 import com.example.nagoyameshi.entity.User;
 import com.example.nagoyameshi.form.SignupForm;
+import com.example.nagoyameshi.form.UserEditForm;
 import com.example.nagoyameshi.repository.RoleRepository;
 import com.example.nagoyameshi.repository.UserRepository;
 
@@ -57,6 +58,29 @@ public class UserService {
 
 		return userRepository.save(user);
 	}
+	
+	@Transactional
+	public void updateUser(User user, UserEditForm userEditForm) {
+		user.setName(userEditForm.getName());
+		user.setFurigana(userEditForm.getFurigana());
+		user.setPostalCode(userEditForm.getPostalCode());
+		user.setAddress(userEditForm.getAddress());
+		user.setPhoneNumber(userEditForm.getPhoneNumber());
+		user.setEmail(userEditForm.getEmail());
+		
+		if (!userEditForm.getBirthday().isEmpty()) {
+			user.setBirthday(LocalDate.parse(userEditForm.getBirthday(), DateTimeFormatter.ofPattern("yyyyMMdd")));
+		} else {
+			user.setBirthday(null);
+		}
+
+		if (!userEditForm.getOccupation().isEmpty()) {
+			user.setOccupation(userEditForm.getOccupation());
+		} else {
+			user.setOccupation(null);
+		}
+		userRepository.save(user);
+	}
 
 	public boolean isEmailRegisterd(String email) {
 		User user = userRepository.findByEmail(email);
@@ -85,4 +109,12 @@ public class UserService {
     public Optional<User> findUserById(Integer id) {
         return userRepository.findById(id);
     }
+    
+    public boolean isEmailChanged(UserEditForm userEditForm, User user) {
+    	return !userEditForm.getEmail().equals(user.getAddress());
+	}
+    
+    public User findUserByEmail(String email) {
+    	return userRepository.findByEmail(email);
+	}
 }
