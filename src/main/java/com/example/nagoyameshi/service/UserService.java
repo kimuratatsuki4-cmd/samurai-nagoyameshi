@@ -124,11 +124,13 @@ public class UserService {
     	return userRepository.findByEmail(email);
 	}
     
+    @Transactional
     public void saveStripeCustomerId(User user, String stripeCustomerId) {
 		user.setStripeCustomerId(stripeCustomerId);
 		userRepository.save(user);
 		}
     
+    @Transactional
     public void updateRole(User user, String roleName) {
     	Role role = roleRepository.findByName(roleName);
 		user.setRole(role);

@@ -1,5 +1,7 @@
 package com.example.nagoyameshi.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -18,134 +20,152 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.PaymentMethod;
 import com.stripe.model.Subscription;
-import com.stripe.param.SubscriptionCancelParams;
 
 @Controller
 @RequestMapping("/subscription")
 public class SubscriptionController {
+   @Value("${stripe.premium-plan-price-id}")
+   private String premiumPlanPriceId;
 
-	private final StripeService stripeService;
-	private final UserService userService;
-	@Value("${stripe.premium-plan-price-id}")
-	private String premiumPlanPriceId;
+   private final UserService userService;
+   private final StripeService stripeService;
 
-	// コンストラクタインジェクション
-	public SubscriptionController(StripeService stripeService, UserService userService) {
-		this.stripeService = stripeService;
-		this.userService = userService;
-	}
+   public SubscriptionController(UserService userService, StripeService stripeService) {
+       this.userService = userService;
+       this.stripeService = stripeService;
+   }
 
-	// 1. 有料プラン登録ページを表示
-	@GetMapping("/register")
-	public String register() {
-		// フロントエンドのStripe.jsで使用する公開鍵などをModelに渡す処理があればここに記述
-		return "subscription/register";
-	}
+   @GetMapping("/register")
+   public String register() {
+       return "subscription/register";
+   }
 
-	// 2. 顧客作成・サブスクリプション作成・ロール更新
-	@PostMapping("/create")
-	public String create(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
-			@RequestParam("paymentMethodId") String paymentMethodId,
-			RedirectAttributes redirectAttributes) {
-		User user = userDetailsImpl.getUser();
-		if (user.getStripeCustomerId() != null) {
+   @PostMapping("/create")
+   public String create(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl, @RequestParam String paymentMethodId, RedirectAttributes redirectAttributes) {
+       User user = userDetailsImpl.getUser();
 
-			try {
-				Customer customer = stripeService.createCustomer(user);
-				// stripeCustomerIdフィールドに顧客IDを保存する
-				userService.saveStripeCustomerId(user, customer.getId());
-			} catch (StripeException e) {
-				// TODO: handle exception
-				redirectAttributes.addFlashAttribute("errorMessage", "有料プランへの登録に失敗しました。再度お試しください。");
-			}
-		}
-		// Stripe上で顧客を作成し、支払い方法を紐付け、サブスクリプションを開始する
-		String stripeCustomerId = user.getStripeCustomerId();
-		try {
-			stripeService.attachPaymentMethodToCustomer(paymentMethodId, stripeCustomerId);
-			stripeService.setDefaultPaymentMethod(paymentMethodId, stripeCustomerId);
-			stripeService.createSubscription(premiumPlanPriceId, stripeCustomerId);
-		} catch (StripeException e) {
-			// TODO 自動生成された catch ブロック
-			redirectAttributes.addFlashAttribute("errorMessage", "有料プランへの登録に失敗しました。再度お試しください。");
-		}
+       // ユーザーのstripeCustomerIdフィールドがnull、つまりそのユーザーが初めてサブスクリプションに加入する場合の処理
+       if (user.getStripeCustomerId() == null) {
+           try {
+               // 顧客（StripeのCustomerオブジェクト）を作成する
+               Customer customer = stripeService.createCustomer(user);
 
-		// ユーザーのロールを更新する (例: ROLE_FREE -> ROLE_PAID)
-		userService.updateRole(user, "ROLE_PAID_MEMBER");
-		userService.refreshAuthenticationByRole("ROLE_PAID_MEMBER");
+               // stripeCustomerIdフィールドに顧客IDを保存する
+               userService.saveStripeCustomerId(user, customer.getId());
+           } catch (StripeException e) {
+               redirectAttributes.addFlashAttribute("errorMessage", "有料プランへの登録に失敗しました。再度お試しください。");
 
-		// セッション情報の更新が必要な場合はここで行う（再ログインなしで権限反映など）
-		redirectAttributes.addFlashAttribute("successMessage", "有料プランへの登録が完了しました。");
-		return "redirect:/"; // マイページやトップページへリダイレクト
-	}
+               return "redirect:/";
+           }
+       }
 
-	// 3. お支払い方法編集ページを表示
-	@GetMapping("/edit")
-	public String edit(Model model, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
-			RedirectAttributes redirectAttributes) {
-		User user = userDetailsImpl.getUser();
-		try {
-			PaymentMethod paymentMethod = stripeService.getDefaultPaymentMethodId(user.getStripeCustomerId());
-			model.addAttribute("card", paymentMethod.getCard());
-			model.addAttribute("cardHolderName", paymentMethod.getBillingDetails().getName());
-		} catch (StripeException e) {
-			// TODO: handle exception
-			redirectAttributes.addFlashAttribute("errorMessage", "お支払い方法を取得できませんでした。再度お試しください。");
-		}
+       String stripeCustomerId = user.getStripeCustomerId();
 
-		return "subscription/edit";
-	}
+       try {
+           // フォームから送信された支払い方法（StripeのPaymentMethodオブジェクト）を顧客に紐づける
+           stripeService.attachPaymentMethodToCustomer(paymentMethodId, stripeCustomerId);
 
-	// 4. デフォルトの支払い方法を更新
-	@PostMapping("/update")
-	public String update(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
-			@RequestParam("paymentMethodId") String paymentMethodId,
-			RedirectAttributes redirectAttributes,
-			Model model) {
-		User user = userDetailsImpl.getUser();
-		try {
-			PaymentMethod defaultPaymentMethodId = stripeService.getDefaultPaymentMethodId(user.getStripeCustomerId());
-			stripeService.attachPaymentMethodToCustomer(paymentMethodId, user.getStripeCustomerId());
-			stripeService.setDefaultPaymentMethod(paymentMethodId, user.getStripeCustomerId());
+           // フォームから送信された支払い方法を顧客のデフォルトの支払い方法に設定する
+           stripeService.setDefaultPaymentMethod(paymentMethodId, stripeCustomerId);
 
-			stripeService.detachPaymentMethodFromCustomer(defaultPaymentMethodId.getId());
+           // サブスクリプション（StripeのSubscriptionオブジェクト）を作成する
+           stripeService.createSubscription(stripeCustomerId, premiumPlanPriceId);
 
-			redirectAttributes.addFlashAttribute("successMessage", "お支払い方法を変更しました。");
-			return "redirect:/subscription/edit";
+       } catch (StripeException e) {
+           redirectAttributes.addFlashAttribute("errorMessage", "有料プランへの登録に失敗しました。再度お試しください。");
 
-		} catch (StripeException e) {
-			redirectAttributes.addFlashAttribute("errorMessage", "お支払い方法の変更に失敗しました。再度お試しください。");
-			return "redirect:/subscription/edit";
-		}
-	}
+           return "redirect:/";
+       }
 
-	// 5. 有料プラン解約ページを表示
-	@GetMapping("/cancel")
-	public String cancel() {
-		return "subscription/cancel";
-	}
+       // ユーザーのロールを更新する
+       userService.updateRole(user, "ROLE_PAID_MEMBER");
+       userService.refreshAuthenticationByRole("ROLE_PAID_MEMBER");
 
-	// 6. サブスクリプション解約・支払い方法解除・ロール更新
-	@PostMapping("/delete")
-	public String delete(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
-			RedirectAttributes redirectAttributes) {
-		User user = userDetailsImpl.getUser();
-		try {
-			Subscription subscription = Subscription.retrieve(user.getStripeCustomerId());
-			SubscriptionCancelParams params = SubscriptionCancelParams.builder().build();
-			subscription.cancel(params);
+       redirectAttributes.addFlashAttribute("successMessage", "有料プランへの登録が完了しました。");
 
-			PaymentMethod paymentMethod = stripeService.getDefaultPaymentMethodId(user.getStripeCustomerId());
-			stripeService.detachPaymentMethodFromCustomer(paymentMethod.getId());
+       return "redirect:/";
+   }
 
-		} catch (StripeException e) {
-			redirectAttributes.addFlashAttribute("errorMessage", "有料プランの解約に失敗しました。再度お試しください。");
-			return "redirect:/subscription/cancel";
-		}
-		userService.updateRole(user, "ROLE_FREE_MEMBER");
-		userService.refreshAuthenticationByRole("ROLE_FREE_MEMBER");
+   @GetMapping("/edit")
+   public String edit(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl, RedirectAttributes redirectAttributes, Model model) {
+       User user = userDetailsImpl.getUser();
 
-		redirectAttributes.addFlashAttribute("successMessage", "有料プランを解約しました。");
-		return "redirect:/";
-	}
+       try {
+           // 顧客のデフォルトの支払い方法（StripeのPaymentMethodオブジェクト）を取得する
+           PaymentMethod paymentMethod = stripeService.getDefaultPaymentMethod(user.getStripeCustomerId());
+
+           model.addAttribute("card", paymentMethod.getCard());
+           model.addAttribute("cardHolderName", paymentMethod.getBillingDetails().getName());
+       } catch (StripeException e) {
+           redirectAttributes.addFlashAttribute("errorMessage", "お支払い方法を取得できませんでした。再度お試しください。");
+
+           return "redirect:/";
+       }
+
+       return "subscription/edit";
+   }
+
+   @PostMapping("/update")
+   public String update(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl, @RequestParam String paymentMethodId, RedirectAttributes redirectAttributes) {
+       User user = userDetailsImpl.getUser();
+       String stripeCustomerId = user.getStripeCustomerId();
+
+       try {
+           // 現在のデフォルトの支払い方法（StripeのPaymentMethodオブジェクト）のIDを取得する
+           String currentDefaultPaymentMethodId = stripeService.getDefaultPaymentMethodId(stripeCustomerId);
+
+           // フォームから送信された支払い方法を顧客（StripeのCustomerオブジェクト）に紐づける
+           stripeService.attachPaymentMethodToCustomer(paymentMethodId, stripeCustomerId);
+
+           // フォームから送信された支払い方法を顧客のデフォルトの支払い方法に設定する
+           stripeService.setDefaultPaymentMethod(paymentMethodId, stripeCustomerId);
+
+           // 以前のデフォルトの支払い方法と顧客の紐づけを解除する
+           stripeService.detachPaymentMethodFromCustomer(currentDefaultPaymentMethodId);
+       } catch (StripeException e) {
+           redirectAttributes.addFlashAttribute("errorMessage", "お支払い方法の変更に失敗しました。再度お試しください。");
+
+           return "redirect:/";
+       }
+
+       redirectAttributes.addFlashAttribute("successMessage", "お支払い方法を変更しました。");
+
+       return "redirect:/";
+   }
+
+   @GetMapping("/cancel")
+   public String cancel() {
+       return "subscription/cancel";
+   }
+
+   @PostMapping("/delete")
+   public String delete(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl, RedirectAttributes redirectAttributes) {
+       User user = userDetailsImpl.getUser();
+
+       try {
+           // 顧客が契約中のサブスクリプション（StripeのSubscriptionオブジェクト）を取得する
+           List<Subscription> subscriptions = stripeService.getSubscriptions(user.getStripeCustomerId());
+
+           // 顧客が契約中のサブスクリプションをキャンセルする
+           stripeService.cancelSubscriptions(subscriptions);
+
+           // デフォルトの支払い方法（StripeのPaymentMethodオブジェクト）のIDを取得する
+           String defaultPaymentMethodId = stripeService.getDefaultPaymentMethodId(user.getStripeCustomerId());
+
+           // デフォルトの支払い方法と顧客の紐づけを解除する
+           stripeService.detachPaymentMethodFromCustomer(defaultPaymentMethodId);
+       } catch (StripeException e) {
+           redirectAttributes.addFlashAttribute("errorMessage", "有料プランの解約に失敗しました。再度お試しください。");
+
+           return "redirect:/";
+       }
+
+       // ユーザーのロールを更新する
+       userService.updateRole(user, "ROLE_FREE_MEMBER");
+       userService.refreshAuthenticationByRole("ROLE_FREE_MEMBER");
+
+       redirectAttributes.addFlashAttribute("successMessage", "有料プランを解約しました。");
+
+       return "redirect:/";
+   }
 }

@@ -1,4 +1,4 @@
-const stripe = Stripe('Stripeの公開可能キー');
+const stripe = Stripe('pk_test_51S7SH9CmO1BSFrw6rAT2rBY1jqzn6s8yRXSaMN30pIzupxn46RInzJdLyLzw71F63PrF0HX8wYUeugdSJzMENxQN00hJ6Msp9U');
 
 const elements = stripe.elements();
 const cardElement = elements.create('card');

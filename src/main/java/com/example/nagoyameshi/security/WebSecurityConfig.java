@@ -22,7 +22,8 @@ public class WebSecurityConfig {
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/subscription/register", "/subscription/create").hasRole("FREE_MEMBER")  // 無料会員にのみアクセスを許可するURL
                 .requestMatchers("/subscription/edit", "/subscription/update", "/subscription/cancel", "/subscription/delete").hasRole("PAID_MEMBER")  // 有料会員にのみアクセスを許可するURL                
-                .requestMatchers("/restaurants/**").hasAnyRole("ANONYMOUS","FREE_MEMBER","PAID_MEMBER")// 三者にのみアクセスを許可するURL
+                .requestMatchers("/restaurants/**").hasAnyRole("ANONYMOUS","FREE_MEMBER","PAID_MEMBER")
+                .requestMatchers("/restaurants/{restaurantId}/reviews/**"	).hasAnyRole("FREE_MEMBER","PAID_MEMBER")// 無料会員・有料会員のみアクセスを許可するURL
                 .anyRequest().authenticated()                   // 上記以外のURLはログインが必要（会員または管理者のどちらでもOK）
             )
             .formLogin((form) -> form
