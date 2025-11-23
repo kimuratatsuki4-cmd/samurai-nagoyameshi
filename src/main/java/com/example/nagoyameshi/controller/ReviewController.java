@@ -95,7 +95,6 @@ public class ReviewController {
 
        if (user.getRole().getName().equals("ROLE_FREE_MEMBER")) {
            redirectAttributes.addFlashAttribute("subscriptionMessage", "この機能を利用するには有料プランへの登録が必要です。");
-
            return "redirect:/subscription/register";
        }
 

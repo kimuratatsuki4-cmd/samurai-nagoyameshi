@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +17,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.nagoyameshi.entity.Category;
+import com.example.nagoyameshi.entity.Favorite;
 import com.example.nagoyameshi.entity.Restaurant;
+import com.example.nagoyameshi.entity.User;
+import com.example.nagoyameshi.security.UserDetailsImpl;
 import com.example.nagoyameshi.service.CategoryService;
+import com.example.nagoyameshi.service.FavoriteService;
 import com.example.nagoyameshi.service.RestaurantService;
 
 @Controller
@@ -25,11 +30,14 @@ import com.example.nagoyameshi.service.RestaurantService;
 public class RestaurantController {
 	private final RestaurantService restaurantService;
 	private final CategoryService categoryService;
+	private final FavoriteService favoriteService;
 
-	public RestaurantController(RestaurantService restaurantService, CategoryService categoryService) {
+	public RestaurantController(RestaurantService restaurantService, CategoryService categoryService,
+			FavoriteService favoriteService) {
 		super();
 		this.restaurantService = restaurantService;
 		this.categoryService = categoryService;
+		this.favoriteService = favoriteService;
 	}
 
 	@GetMapping
@@ -116,13 +124,28 @@ public class RestaurantController {
 	public String show(
 			@PathVariable(name = "id") Integer id,
 			RedirectAttributes redirectAttributes,
-			Model model) {
+			Model model,
+			@AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
 		Optional<Restaurant> optionalRestaurantsOptional = restaurantService.findRestaurantById(id);
 		if (optionalRestaurantsOptional.isEmpty()) {
 			redirectAttributes.addFlashAttribute("errorMessage", "店舗が存在しません。");
 		}
 		Restaurant restaurant = optionalRestaurantsOptional.get();
+
+		Favorite favorite = null;
+		Boolean isFavorite = false;
+		if (userDetailsImpl != null) {
+			User user = userDetailsImpl.getUser();
+			isFavorite = favoriteService.isFavorite(restaurant, user);
+			if (isFavorite) {
+				Optional<Favorite> favoriteOptional = favoriteService.findFavoriteByRestaurantAndUser(restaurant, user);
+				favorite = favoriteOptional.get();
+			}
+		}
+
 		model.addAttribute("restaurant", restaurant);
+		model.addAttribute("favorite", favorite);
+		model.addAttribute("isFavorite", isFavorite);
 
 		return "restaurants/show";
 	}
