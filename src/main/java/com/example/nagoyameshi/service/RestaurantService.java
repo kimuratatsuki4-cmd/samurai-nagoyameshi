@@ -21,6 +21,7 @@ import com.example.nagoyameshi.form.RestaurantRegisterForm;
 import com.example.nagoyameshi.repository.RestaurantRepository;
 
 @Service
+@Transactional // トランザクションは通常クラス全体に適用
 public class RestaurantService {
 	private final RestaurantRepository restaurantRepository;
 	private final CategoryRestaurantService categoryRestaurantService;
@@ -34,15 +35,9 @@ public class RestaurantService {
 		this.regularHolidayRestaurantService = regularHolidayRestaurantService;
 	}
 
-	// すべての店舗をページングされた状態で取得する
-	public Page<Restaurant> findAllRestaurants(Pageable pageable) {
-		return restaurantRepository.findAll(pageable);
-	}
-
-	// 指定されたキーワードを店舗名に含む店舗を、ページングされた状態で取得する
-	public Page<Restaurant> findRestaurantsByNameLike(String keyword, Pageable pageable) {
-		return restaurantRepository.findByNameLike("%" + keyword + "%", pageable);
-	}
+	// =========================================================================
+	// 1. 基本的なCRUD/単一データ取得メソッド
+	// =========================================================================
 
 	// 指定したidを持つ店舗を取得する
 	public Optional<Restaurant> findRestaurantById(Integer id) {
@@ -59,8 +54,10 @@ public class RestaurantService {
 		return restaurantRepository.findFirstByOrderByIdDesc();
 	}
 
-	@Transactional
+	// 店舗情報を作成する
 	public void createRestaurant(RestaurantRegisterForm restaurantRegisterForm) {
+        // 実装は元のコードを参照（Transactionalアノテーションはクラスレベルで適用）
+        // ...
 		Restaurant restaurant = new Restaurant();
 		List<Integer> categoryIds = restaurantRegisterForm.getCategoryIds();
 		List<Integer> regularholidayIds = restaurantRegisterForm.getRegularHolidayIds();
@@ -95,8 +92,10 @@ public class RestaurantService {
 		}
 	}
 
-	@Transactional
+	// 店舗情報を更新する
 	public void updateRestaurant(RestaurantEditForm restaurantEditForm, Restaurant restaurant) {
+        // 実装は元のコードを参照（Transactionalアノテーションはクラスレベルで適用）
+        // ...
 		MultipartFile imageFile = restaurantEditForm.getImageFile();
 		List<Integer> categoryIds = restaurantEditForm.getCategoryIds();
 		List<Integer> regularholidayIds = restaurantEditForm.getRegularHolidayIds();
@@ -130,88 +129,78 @@ public class RestaurantService {
 		}
 	}
 
-	@Transactional
+	// 店舗情報を削除する
 	public void deleteRestaurant(Restaurant restaurant) {
 		restaurantRepository.delete(restaurant);
 	}
-
-	// UUIDを使って生成したファイル名を返す
-	public String generateNewFileName(String fileName) {
-		String[] fileNames = fileName.split("\\.");
-
-		for (int i = 0; i < fileNames.length - 1; i++) {
-			fileNames[i] = UUID.randomUUID().toString();
-		}
-
-		String hashedFileName = String.join(".", fileNames);
-
-		return hashedFileName;
+    
+	// =========================================================================
+	// 2. 基本検索・定休日取得メソッド
+	// =========================================================================
+    
+	// すべての店舗をページングされた状態で取得する
+	public Page<Restaurant> findAllRestaurants(Pageable pageable) {
+		return restaurantRepository.findAll(pageable);
 	}
 
-	// 画像ファイルを指定したファイルにコピーする
-	public void copyImageFile(MultipartFile imageFile, Path filePath) {
-		try {
-			Files.copy(imageFile.getInputStream(), filePath);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	// 指定されたキーワードを店舗名に含む店舗を、ページングされた状態で取得する
+	public Page<Restaurant> findRestaurantsByNameLike(String keyword, Pageable pageable) {
+		return restaurantRepository.findByNameLike("%" + keyword + "%", pageable);
 	}
 
-	// 価格が正しく設定されているかどうかをチェックする
-	public boolean isValidPrices(Integer lowestPrice, Integer highestPrice) {
-		return highestPrice >= lowestPrice;
+    // 指定された店舗の定休日のday_indexフィールドの値をリストで取得する
+	public List<Integer> findDayIndexesByRestaurantId(Integer restaurantId) {
+		return restaurantRepository.findDayIndexesByRestaurantId(restaurantId);
 	}
 
-	// 営業時間が正しく設定されているかどうかをチェックする
-	public boolean isValidBusinessHours(LocalTime openingTime, LocalTime closingTime) {
-		return closingTime.isAfter(openingTime);
-	}
+	// =========================================================================
+	// 3. 複雑な検索・並べ替えメソッド (OrderBy別)
+	// =========================================================================
+
+    // --- 3.1. 作成日時 (CreatedAtDesc) による並べ替え ---
 
 	public Page<Restaurant> findAllRestaurantsByOrderByCreatedAtDesc(Pageable pageable) {
 		return restaurantRepository.findAllRestaurantsByOrderByCreatedAtDesc(pageable);
-
 	}
 
-	// すべての店舗を最低価格が安い順に並べ替え、ページングされた状態で取得する
-	public Page<Restaurant> findAllRestaurantsByOrderByLowestPriceAsc(Pageable pageable) {
-		return restaurantRepository.findAllByOrderByLowestPriceAsc(pageable);
-	}
-
-	// 指定されたキーワードを店舗名または住所またはカテゴリ名に含む店舗を作成日時が新しい順に並べ替え、ページングされた状態で取得する
 	public Page<Restaurant> findRestaurantsByNameLikeOrAddressLikeOrCategoryNameLikeOrderByCreatedAtDesc(
 			String nameKeyword, String addressKeyword, String categoryNameKeyword, Pageable pageable) {
 		return restaurantRepository.findByNameLikeOrAddressLikeOrCategoryNameLikeOrderByCreatedAtDesc(nameKeyword,
 				addressKeyword, categoryNameKeyword, pageable);
 	}
 
-	// 指定されたキーワードを店舗名または住所またはカテゴリ名に含む店舗を最低価格が安い順に並べ替え、ページングされた状態で取得する
+	public Page<Restaurant> findRestaurantsByCategoryIdOrderByCreatedAtDesc(Integer categoryId, Pageable pageable) {
+		return restaurantRepository.findByCategoryIdOrderByCreatedAtDesc(categoryId, pageable);
+	}
+
+	public Page<Restaurant> findRestaurantsByLowestPriceLessThanEqualOrderByCreatedAtDesc(Integer price,
+			Pageable pageable) {
+		return restaurantRepository.findByLowestPriceLessThanEqualOrderByCreatedAtDesc(price, pageable);
+	}
+    
+    // --- 3.2. 最低価格 (LowestPriceAsc) による並べ替え ---
+    
+	// すべての店舗を最低価格が安い順に並べ替え、ページングされた状態で取得する
+	public Page<Restaurant> findAllRestaurantsByOrderByLowestPriceAsc(Pageable pageable) {
+		return restaurantRepository.findAllByOrderByLowestPriceAsc(pageable);
+	}
+
 	public Page<Restaurant> findRestaurantsByNameLikeOrAddressLikeOrCategoryNameLikeOrderByLowestPriceAsc(
 			String nameKeyword, String addressKeyword, String categoryNameKeyword, Pageable pageable) {
 		return restaurantRepository.findRestaurantsByNameLikeOrAddressLikeOrCategoryNameLikeOrderByLowestPriceAsc(
 				nameKeyword, addressKeyword, categoryNameKeyword, pageable);
 	}
 
-	// 指定されたidのカテゴリが設定された店舗を作成日時が新しい順に並べ替え、ページングされた状態で取得する
-	public Page<Restaurant> findRestaurantsByCategoryIdOrderByCreatedAtDesc(Integer categoryId, Pageable pageable) {
-		return restaurantRepository.findByCategoryIdOrderByCreatedAtDesc(categoryId, pageable);
-	}
-
-	// 指定されたidのカテゴリが設定された店舗を最低価格が安い順に並べ替え、ページングされた状態で取得する
 	public Page<Restaurant> findRestaurantsByCategoryIdOrderByLowestPriceAsc(Integer categoryId, Pageable pageable) {
 		return restaurantRepository.findByCategoryIdOrderByLowestPriceAsc(categoryId, pageable);
 	}
 
-	// 指定された最低価格以下の店舗を作成日時が新しい順に並べ替え、ページングされた状態で取得する
-	public Page<Restaurant> findRestaurantsByLowestPriceLessThanEqualOrderByCreatedAtDesc(Integer price,
-			Pageable pageable) {
-		return restaurantRepository.findByLowestPriceLessThanEqualOrderByCreatedAtDesc(price, pageable);
-	}
-
-	// 指定された最低価格以下の店舗を最低価格が安い順に並べ替え、ページングされた状態で取得する
 	public Page<Restaurant> findRestaurantsByLowestPriceLessThanEqualOrderByLowestPriceAsc(Integer price,
 			Pageable pageable) {
 		return restaurantRepository.findByLowestPriceLessThanEqualOrderByLowestPriceAsc(price, pageable);
 	}
+    
+    // --- 3.3. 平均評価スコア (AverageScoreDesc) による並べ替え ---
 
 	public Page<Restaurant> findAllRestaurantsByOrderByAverageScoreDesc(Pageable pageable) {
 		return restaurantRepository.findAllByOrderByAverageScoreDesc(pageable);
@@ -238,5 +227,64 @@ public class RestaurantService {
 			Pageable pageable) {
 		return restaurantRepository.findByLowestPriceLessThanEqualOrderByAverageScoreDesc(price, pageable);
 	}
+    
+    // --- 3.4. 予約数 (ReservationCountDesc) による並べ替え ---
 
+	public Page<Restaurant> findAllRestaurantsByOrderByReservationCountDesc(Pageable pageable) {
+		return restaurantRepository.findAllByOrderByReservationCountDesc(pageable);
+	}
+
+	public Page<Restaurant> findRestaurantsByNameLikeOrAddressLikeOrCategoryNameLikeOrderByReservationCountDesc(
+			String nameKeyword,
+			String addressKeyword,
+			String categoryNameKeyword,
+			Pageable pageable) {
+		// リポジトリメソッドの呼び出しに合わせて引数を調整
+		return restaurantRepository.findByNameLikeOrAddressLikeOrCategoryNameLikeOrderByReservationCountDesc(nameKeyword,
+				addressKeyword, categoryNameKeyword, pageable);
+	}
+
+	public Page<Restaurant> findRestaurantsByCategoryIdOrderByReservationCountDesc(Integer categoryId,
+			Pageable pageable) {
+		return restaurantRepository.findByCategoryIdOrderByReservationCountDesc(categoryId, pageable);
+	}
+
+	public Page<Restaurant> findRestaurantsByLowestPriceLessThanEqualOrderByReservationCountDesc(Integer price,
+			Pageable pageable) {
+		return restaurantRepository.findByLowestPriceLessThanEqualOrderByReservationCountDesc(price, pageable);
+	}
+
+	// =========================================================================
+	// 4. ユーティリティメソッド (画像処理、バリデーション)
+	// =========================================================================
+
+	// UUIDを使って生成したファイル名を返す
+	public String generateNewFileName(String fileName) {
+		String[] fileNames = fileName.split("\\.");
+		// ファイル名をUUIDに変更する処理（拡張子は維持）
+		for (int i = 0; i < fileNames.length - 1; i++) {
+			fileNames[i] = UUID.randomUUID().toString();
+		}
+		String hashedFileName = String.join(".", fileNames);
+		return hashedFileName;
+	}
+
+	// 画像ファイルを指定したファイルにコピーする
+	public void copyImageFile(MultipartFile imageFile, Path filePath) {
+		try {
+			Files.copy(imageFile.getInputStream(), filePath);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// 価格が正しく設定されているかどうかをチェックする (最高価格 >= 最低価格)
+	public boolean isValidPrices(Integer lowestPrice, Integer highestPrice) {
+		return highestPrice >= lowestPrice;
+	}
+
+	// 営業時間が正しく設定されているかどうかをチェックする (閉店時間 > 開店時間)
+	public boolean isValidBusinessHours(LocalTime openingTime, LocalTime closingTime) {
+		return closingTime.isAfter(openingTime);
+	}
 }

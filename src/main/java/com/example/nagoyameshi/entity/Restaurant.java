@@ -21,7 +21,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "restaurants")
 @Data
-@ToString(exclude = { "categoriesRestaurants", "regularHolidaysRestaurants", "reviews" })
+@ToString(exclude = { "categoriesRestaurants", "regularHolidaysRestaurants", "reviews","reservations" })
 public class Restaurant {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,19 +71,23 @@ public class Restaurant {
 	@OneToMany(mappedBy = "restaurant", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
 	@OrderBy("id ASC")
 	private List<RegularHolidayRestaurant> regularHolidaysRestaurants;
-	
+
 	@OneToMany(mappedBy = "restaurant", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
 	@OrderBy("id ASC")
 	private List<Review> reviews;
-	
-	@Transient
-    public Double getAverageScore() {
-        Double averageScore = reviews.stream()
-                                     .mapToInt(Review::getScore)
-                                     .average()
-                                     .orElse(0.0);
 
-        return averageScore;
-    }    
+	@Transient
+	public Double getAverageScore() {
+		Double averageScore = reviews.stream()
+				.mapToInt(Review::getScore)
+				.average()
+				.orElse(0.0);
+
+		return averageScore;
+	}
+
+	@OneToMany(mappedBy = "restaurant", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+	@OrderBy("id ASC")
+	private List<Reservation> reservations;
 
 }
