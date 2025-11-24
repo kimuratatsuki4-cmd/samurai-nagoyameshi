@@ -151,5 +151,9 @@ public class UserService {
         SecurityContextHolder.getContext().setAuthentication(newAuthentication);
     }
     
+    public Integer countUsersByRole_Name(String roleName) {
+		return userRepository.countByRole_Name(roleName);
+	}
+    
     
 }
