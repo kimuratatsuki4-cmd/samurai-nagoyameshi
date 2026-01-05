@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -56,8 +57,8 @@ public class RestaurantService {
 
 	// 店舗情報を作成する
 	public void createRestaurant(RestaurantRegisterForm restaurantRegisterForm) {
-        // 実装は元のコードを参照（Transactionalアノテーションはクラスレベルで適用）
-        // ...
+		// 実装は元のコードを参照（Transactionalアノテーションはクラスレベルで適用）
+		// ...
 		Restaurant restaurant = new Restaurant();
 		List<Integer> categoryIds = restaurantRegisterForm.getCategoryIds();
 		List<Integer> regularholidayIds = restaurantRegisterForm.getRegularHolidayIds();
@@ -94,8 +95,8 @@ public class RestaurantService {
 
 	// 店舗情報を更新する
 	public void updateRestaurant(RestaurantEditForm restaurantEditForm, Restaurant restaurant) {
-        // 実装は元のコードを参照（Transactionalアノテーションはクラスレベルで適用）
-        // ...
+		// 実装は元のコードを参照（Transactionalアノテーションはクラスレベルで適用）
+		// ...
 		MultipartFile imageFile = restaurantEditForm.getImageFile();
 		List<Integer> categoryIds = restaurantEditForm.getCategoryIds();
 		List<Integer> regularholidayIds = restaurantEditForm.getRegularHolidayIds();
@@ -133,11 +134,11 @@ public class RestaurantService {
 	public void deleteRestaurant(Restaurant restaurant) {
 		restaurantRepository.delete(restaurant);
 	}
-    
+
 	// =========================================================================
 	// 2. 基本検索・定休日取得メソッド
 	// =========================================================================
-    
+
 	// すべての店舗をページングされた状態で取得する
 	public Page<Restaurant> findAllRestaurants(Pageable pageable) {
 		return restaurantRepository.findAll(pageable);
@@ -148,7 +149,7 @@ public class RestaurantService {
 		return restaurantRepository.findByNameLike("%" + keyword + "%", pageable);
 	}
 
-    // 指定された店舗の定休日のday_indexフィールドの値をリストで取得する
+	// 指定された店舗の定休日のday_indexフィールドの値をリストで取得する
 	public List<Integer> findDayIndexesByRestaurantId(Integer restaurantId) {
 		return restaurantRepository.findDayIndexesByRestaurantId(restaurantId);
 	}
@@ -157,7 +158,7 @@ public class RestaurantService {
 	// 3. 複雑な検索・並べ替えメソッド (OrderBy別)
 	// =========================================================================
 
-    // --- 3.1. 作成日時 (CreatedAtDesc) による並べ替え ---
+	// --- 3.1. 作成日時 (CreatedAtDesc) による並べ替え ---
 
 	public Page<Restaurant> findAllRestaurantsByOrderByCreatedAtDesc(Pageable pageable) {
 		return restaurantRepository.findAllRestaurantsByOrderByCreatedAtDesc(pageable);
@@ -177,9 +178,9 @@ public class RestaurantService {
 			Pageable pageable) {
 		return restaurantRepository.findByLowestPriceLessThanEqualOrderByCreatedAtDesc(price, pageable);
 	}
-    
-    // --- 3.2. 最低価格 (LowestPriceAsc) による並べ替え ---
-    
+
+	// --- 3.2. 最低価格 (LowestPriceAsc) による並べ替え ---
+
 	// すべての店舗を最低価格が安い順に並べ替え、ページングされた状態で取得する
 	public Page<Restaurant> findAllRestaurantsByOrderByLowestPriceAsc(Pageable pageable) {
 		return restaurantRepository.findAllByOrderByLowestPriceAsc(pageable);
@@ -199,8 +200,8 @@ public class RestaurantService {
 			Pageable pageable) {
 		return restaurantRepository.findByLowestPriceLessThanEqualOrderByLowestPriceAsc(price, pageable);
 	}
-    
-    // --- 3.3. 平均評価スコア (AverageScoreDesc) による並べ替え ---
+
+	// --- 3.3. 平均評価スコア (AverageScoreDesc) による並べ替え ---
 
 	public Page<Restaurant> findAllRestaurantsByOrderByAverageScoreDesc(Pageable pageable) {
 		return restaurantRepository.findAllByOrderByAverageScoreDesc(pageable);
@@ -227,8 +228,8 @@ public class RestaurantService {
 			Pageable pageable) {
 		return restaurantRepository.findByLowestPriceLessThanEqualOrderByAverageScoreDesc(price, pageable);
 	}
-    
-    // --- 3.4. 予約数 (ReservationCountDesc) による並べ替え ---
+
+	// --- 3.4. 予約数 (ReservationCountDesc) による並べ替え ---
 
 	public Page<Restaurant> findAllRestaurantsByOrderByReservationCountDesc(Pageable pageable) {
 		return restaurantRepository.findAllByOrderByReservationCountDesc(pageable);
@@ -240,7 +241,8 @@ public class RestaurantService {
 			String categoryNameKeyword,
 			Pageable pageable) {
 		// リポジトリメソッドの呼び出しに合わせて引数を調整
-		return restaurantRepository.findByNameLikeOrAddressLikeOrCategoryNameLikeOrderByReservationCountDesc(nameKeyword,
+		return restaurantRepository.findByNameLikeOrAddressLikeOrCategoryNameLikeOrderByReservationCountDesc(
+				nameKeyword,
 				addressKeyword, categoryNameKeyword, pageable);
 	}
 
@@ -253,6 +255,74 @@ public class RestaurantService {
 			Pageable pageable) {
 		return restaurantRepository.findByLowestPriceLessThanEqualOrderByReservationCountDesc(price, pageable);
 	}
+
+	// --- 3.5. 現在営業中の店舗検索---
+	/**
+	 * 現在時刻に基づいて営業中の店舗を検索する。
+	 * 現在の曜日と時刻を取得し、Repositoryへ渡す。
+	 */
+	public Page<Restaurant> findOpenRestaurants(Pageable pageable) {
+		LocalDateTime now = LocalDateTime.now();
+		LocalTime currentTime = now.toLocalTime();
+
+		// Javaの曜日(1:月~7:日)をDBのday_index(1:月~6:土, 0:日)に変換
+		int dayIndex = now.getDayOfWeek().getValue();
+		if (dayIndex == 7) {
+			dayIndex = 0;
+		}
+
+		return restaurantRepository.findOpenRestaurants(currentTime, dayIndex, pageable);
+	}
+	
+	// 現在営業中 × 価格が安い順
+    public Page<Restaurant> findOpenRestaurantsOrderByLowestPriceAsc(Pageable pageable) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalTime currentTime = now.toLocalTime();
+        int dayIndex = now.getDayOfWeek().getValue();
+        if (dayIndex == 7) dayIndex = 0;
+
+        return restaurantRepository.findOpenRestaurantsOrderByLowestPriceAsc(currentTime, dayIndex, pageable);
+    }
+
+    // 現在営業中 × 評価が高い順
+    public Page<Restaurant> findOpenRestaurantsOrderByAverageScoreDesc(Pageable pageable) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalTime currentTime = now.toLocalTime();
+        int dayIndex = now.getDayOfWeek().getValue();
+        if (dayIndex == 7) dayIndex = 0;
+
+        return restaurantRepository.findOpenRestaurantsOrderByAverageScoreDesc(currentTime, dayIndex, pageable);
+    }
+
+    // 現在営業中 × 予約数が多い順
+    public Page<Restaurant> findOpenRestaurantsOrderByReservationCountDesc(Pageable pageable) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalTime currentTime = now.toLocalTime();
+        int dayIndex = now.getDayOfWeek().getValue();
+        if (dayIndex == 7) dayIndex = 0;
+
+        return restaurantRepository.findOpenRestaurantsOrderByReservationCountDesc(currentTime, dayIndex, pageable);
+    }
+	
+	//--- 3.6.  指定された評価以上の店舗を検索する
+		public Page<Restaurant> findRestaurantsByMinRating(Double minRating, Pageable pageable) {
+			return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByAverageScoreDesc(minRating, pageable);
+		}
+		
+		// 評価で絞込 × 新着順
+	    public Page<Restaurant> findRestaurantsByMinRatingOrderByCreatedAtDesc(Double minRating, Pageable pageable) {
+	        return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByCreatedAtDesc(minRating, pageable);
+	    }
+
+	    // 評価で絞込 × 価格が安い順
+	    public Page<Restaurant> findRestaurantsByMinRatingOrderByLowestPriceAsc(Double minRating, Pageable pageable) {
+	        return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByLowestPriceAsc(minRating, pageable);
+	    }
+
+	    // 評価で絞込 × 予約数が多い順
+	    public Page<Restaurant> findRestaurantsByMinRatingOrderByReservationCountDesc(Double minRating, Pageable pageable) {
+	        return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByReservationCountDesc(minRating, pageable);
+	    }
 
 	// =========================================================================
 	// 4. ユーティリティメソッド (画像処理、バリデーション)

@@ -1,5 +1,6 @@
 package com.example.nagoyameshi.repository;
 
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -157,6 +158,106 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
 			"ORDER BY COUNT(res) DESC")
 	public Page<Restaurant> findByLowestPriceLessThanEqualOrderByReservationCountDesc(@Param("price") Integer price,
 			Pageable pageable);
+	
+	/**評価点関連のフィルタ
+	 * 指定されたスコア以上の平均評価を持つ店舗を、平均評価が高い順に並べ替えて取得する。
+	 * 要件: Reviewエンティティを結合し、GROUP BYとHAVINGで平均値を判定。
+	 */
+	@Query("SELECT r FROM Restaurant r " +
+			"LEFT JOIN r.reviews rev " +
+			"GROUP BY r.id " +
+			"HAVING AVG(rev.score) >= :minRating " +
+			"ORDER BY AVG(rev.score) DESC")
+	public Page<Restaurant> findByAverageScoreGreaterThanEqualOrderByAverageScoreDesc(@Param("minRating") Double minRating,
+			Pageable pageable);
+	
+	// ▼▼▼ 追加: 評価で絞込 × 新着順 ▼▼▼
+		@Query("SELECT r FROM Restaurant r " +
+				"LEFT JOIN r.reviews rev " +
+				"GROUP BY r.id " +
+				"HAVING AVG(rev.score) >= :minRating " +
+				"ORDER BY r.createdAt DESC")
+		public Page<Restaurant> findByAverageScoreGreaterThanEqualOrderByCreatedAtDesc(@Param("minRating") Double minRating,
+				Pageable pageable);
+
+	    // ▼▼▼ 追加: 評価で絞込 × 価格が安い順 ▼▼▼
+		@Query("SELECT r FROM Restaurant r " +
+				"LEFT JOIN r.reviews rev " +
+				"GROUP BY r.id " +
+				"HAVING AVG(rev.score) >= :minRating " +
+				"ORDER BY r.lowestPrice ASC")
+		public Page<Restaurant> findByAverageScoreGreaterThanEqualOrderByLowestPriceAsc(@Param("minRating") Double minRating,
+				Pageable pageable);
+
+	    // ▼▼▼ 追加: 評価で絞込 × 予約数が多い順 ▼▼▼
+		@Query("SELECT r FROM Restaurant r " +
+				"LEFT JOIN r.reviews rev " +
+	            "LEFT JOIN r.reservations res " +
+				"GROUP BY r.id " +
+				"HAVING AVG(rev.score) >= :minRating " +
+				"ORDER BY COUNT(res) DESC")
+		public Page<Restaurant> findByAverageScoreGreaterThanEqualOrderByReservationCountDesc(@Param("minRating") Double minRating,
+				Pageable pageable);
+	
+	/**営業中の店舗関連のフィルタ
+	 * 現在営業中の店舗をページングされた状態で取得する。
+	 * 条件: 現在時刻が営業時間内 かつ 本日が定休日でない。
+	 * 定休日判定: NOT EXISTSサブクエリを使用し、該当店舗の定休日リストに本日のdayIndexが含まれないことを確認。
+	 */
+	@Query("SELECT r FROM Restaurant r " +
+			"WHERE :currentTime BETWEEN r.openingTime AND r.closingTime " +
+			"AND NOT EXISTS (" +
+			"    SELECT rhr FROM r.regularHolidaysRestaurants rhr " +
+			"    WHERE rhr.regularHoliday.dayIndex = :dayIndex" +
+			") " +
+			"ORDER BY r.id")
+	public Page<Restaurant> findOpenRestaurants(
+			@Param("currentTime") LocalTime currentTime,
+			@Param("dayIndex") Integer dayIndex,
+			Pageable pageable);
+	
+	// ▼▼▼ 追加: 営業中 × 価格が安い順 ▼▼▼
+		@Query("SELECT r FROM Restaurant r " +
+				"WHERE :currentTime BETWEEN r.openingTime AND r.closingTime " +
+				"AND NOT EXISTS (" +
+				"    SELECT rhr FROM r.regularHolidaysRestaurants rhr " +
+				"    WHERE rhr.regularHoliday.dayIndex = :dayIndex" +
+				") " +
+				"ORDER BY r.lowestPrice ASC")
+		public Page<Restaurant> findOpenRestaurantsOrderByLowestPriceAsc(
+				@Param("currentTime") LocalTime currentTime,
+				@Param("dayIndex") Integer dayIndex,
+				Pageable pageable);
+
+	    // ▼▼▼ 追加: 営業中 × 評価が高い順 ▼▼▼
+		@Query("SELECT r FROM Restaurant r " +
+	            "LEFT JOIN r.reviews rev " +
+				"WHERE :currentTime BETWEEN r.openingTime AND r.closingTime " +
+				"AND NOT EXISTS (" +
+				"    SELECT rhr FROM r.regularHolidaysRestaurants rhr " +
+				"    WHERE rhr.regularHoliday.dayIndex = :dayIndex" +
+				") " +
+	            "GROUP BY r.id " +
+				"ORDER BY AVG(rev.score) DESC")
+		public Page<Restaurant> findOpenRestaurantsOrderByAverageScoreDesc(
+				@Param("currentTime") LocalTime currentTime,
+				@Param("dayIndex") Integer dayIndex,
+				Pageable pageable);
+
+	    // ▼▼▼ 追加: 営業中 × 予約数が多い順 ▼▼▼
+		@Query("SELECT r FROM Restaurant r " +
+	            "LEFT JOIN r.reservations res " +
+				"WHERE :currentTime BETWEEN r.openingTime AND r.closingTime " +
+				"AND NOT EXISTS (" +
+				"    SELECT rhr FROM r.regularHolidaysRestaurants rhr " +
+				"    WHERE rhr.regularHoliday.dayIndex = :dayIndex" +
+				") " +
+	            "GROUP BY r.id " +
+				"ORDER BY COUNT(res) DESC")
+		public Page<Restaurant> findOpenRestaurantsOrderByReservationCountDesc(
+				@Param("currentTime") LocalTime currentTime,
+				@Param("dayIndex") Integer dayIndex,
+				Pageable pageable);
 
 	// ------------------------------------------------
 	// 定休日情報の取得メソッド

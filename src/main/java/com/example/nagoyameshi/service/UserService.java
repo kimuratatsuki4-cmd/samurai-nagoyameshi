@@ -89,7 +89,8 @@ public class UserService {
 	}
 
 	public boolean isEmailRegisterd(String email) {
-		User user = userRepository.findByEmail(email);
+		Optional<User> userOptional = userRepository.findByEmail(email);
+		User user = userOptional.get();
 		return user != null;
 
 	}
@@ -104,6 +105,7 @@ public class UserService {
 		userRepository.save(user);
 	}
 	
+	@SuppressWarnings("null")
 	public Page<User> findAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable);
     }
@@ -112,7 +114,8 @@ public class UserService {
         return userRepository.findByNameLikeOrFuriganaLike("%" + nameKeyword + "%", "%" + furiganaKeyword + "%", pageable);
     }
 
-    public Optional<User> findUserById(Integer id) {
+    @SuppressWarnings("null")
+	public Optional<User> findUserById(Integer id) {
         return userRepository.findById(id);
     }
     
@@ -120,7 +123,7 @@ public class UserService {
     	return !userEditForm.getEmail().equals(user.getAddress());
 	}
     
-    public User findUserByEmail(String email) {
+    public Optional<User> findUserByEmail(String email) {
     	return userRepository.findByEmail(email);
 	}
     
@@ -150,6 +153,10 @@ public class UserService {
         // 認証情報を更新する
         SecurityContextHolder.getContext().setAuthentication(newAuthentication);
     }
+    
+    public Integer countUsersByRole_Name(String roleName) {
+		return userRepository.countByRole_Name(roleName);
+	}
     
     
 }

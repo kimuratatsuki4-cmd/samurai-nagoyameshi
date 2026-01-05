@@ -10,10 +10,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import com.example.nagoyameshi.service.CustomOAuth2UserService;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class WebSecurityConfig {
+	private final CustomOAuth2UserService customOAuth2UserService;
+
+	public WebSecurityConfig(CustomOAuth2UserService customOAuth2UserService) {
+		super();
+		this.customOAuth2UserService = customOAuth2UserService;
+	}
+
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
@@ -24,7 +33,8 @@ public class WebSecurityConfig {
 								"/restaurants/{restaurantId}/reservations/**", "/favorites/**",
 								"/restaurants/{restaurantId}/favorites/**")
 						.hasAnyRole("FREE_MEMBER", "PAID_MEMBER") // 無料会員と有料会員にアクセスを許可するURL
-						.requestMatchers("/restaurants/**").hasAnyRole("ANONYMOUS", "FREE_MEMBER", "PAID_MEMBER") // 未ログインのユーザー、無料会員、有料会員にアクセスを許可するURL
+						.requestMatchers("/restaurants/**", "/company", "/terms")
+						.hasAnyRole("ANONYMOUS", "FREE_MEMBER", "PAID_MEMBER") // 未ログインのユーザー、無料会員、有料会員にアクセスを許可するURL
 						.requestMatchers("/subscription/register", "/subscription/create").hasRole("FREE_MEMBER") // 無料会員にのみアクセスを許可するURL
 						.requestMatchers("/subscription/edit", "/subscription/update", "/subscription/cancel",
 								"/subscription/delete")
@@ -41,6 +51,15 @@ public class WebSecurityConfig {
 				.logout((logout) -> logout
 						.logoutSuccessUrl("/?loggedOut") // ログアウト時のリダイレクト先URL
 						.permitAll())
+				/**
+				 * OAuth2（SNS）ログインの設定
+				 */
+				.oauth2Login((oauth2) -> oauth2
+						.loginPage("/login") // 共通のログインページを使用
+						.defaultSuccessUrl("/?loggedIn") // 成功時のリダイレクト先
+						.failureUrl("/login?error") // 失敗時のリダイレクト先
+						.userInfoEndpoint(userInfo -> userInfo
+								.userService(customOAuth2UserService)))
 				.csrf(csrf -> csrf.ignoringRequestMatchers(new AntPathRequestMatcher("/stripe/webhook")));
 
 		return http.build();

@@ -73,6 +73,49 @@
                                     </form>
                                 </div>
                             </div>
+
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    営業日時から探す
+                                </div>
+                                <div class="card-body">
+                                    <form method="get" th:action="@{/restaurants}" class="w-100">
+                                        <div class="form-group mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="true" name="isOpen" id="isOpen" th:checked="${isOpen}">
+                                                <label class="form-check-label" for="isOpen">
+                                                    現在営業中
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <button type="submit" class="btn text-white shadow-sm w-100 nagoyameshi-btn">検索</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    評価から探す
+                                </div>
+                                <div class="card-body">
+                                    <form method="get" th:action="@{/restaurants}" class="w-100">
+                                        <div class="form-group mb-3">
+                                            <select class="form-control form-select" name="minRating" required>
+                                                <option value="" hidden>選択してください</option>
+                                                <option value="1.0" th:selected="${minRating == 1.0}">★1.0 以上</option>
+                                                <option value="2.0" th:selected="${minRating == 2.0}">★2.0 以上</option>
+                                                <option value="3.0" th:selected="${minRating == 3.0}">★3.0 以上</option>
+                                                <option value="4.0" th:selected="${minRating == 4.0}">★4.0 以上</option>
+                                                <option value="5.0" th:selected="${minRating == 5.0}">★5.0</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <button type="submit" class="btn text-white shadow-sm w-100 nagoyameshi-btn">検索</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col">
@@ -91,6 +134,8 @@
                                     <input th:if="${keyword}" type="hidden" name="keyword" th:value="${keyword}">
                                     <input th:if="${categoryId}" type="hidden" name="categoryId" th:value="${categoryId}">
                                     <input th:if="${price}" type="hidden" name="price" th:value="${price}">
+                                    <input th:if="${isOpen}" type="hidden" name="isOpen" th:value="${isOpen}">
+                                    
                                     <select class="form-select form-select-sm" name="order" onChange="this.form.submit();">
                                         <option value="createdAtDesc" th:selected="${order == 'createdAtDesc' || order == null}">掲載日が新しい順</option>
                                         <option value="lowestPriceAsc" th:selected="${order == 'lowestPriceAsc'}">価格が安い順</option>
@@ -139,21 +184,20 @@
                                 </a>
                             </div>
 
-                            <!-- ページネーション -->
                             <div th:if="${restaurantPage.getTotalPages() > 1}" class="d-flex justify-content-center">
                                 <nav aria-label="店舗一覧ページ">
                                     <ul class="pagination">
                                         <li class="page-item">
                                             <span th:if="${restaurantPage.isFirst()}" class="page-link disabled">‹</span>
-                                            <a th:unless="${restaurantPage.isFirst()}" th:href="@{/restaurants(page = ${restaurantPage.getNumber() - 1}, keyword = ${keyword}, categoryId = ${categoryId}, price = ${price}, order = ${order})}" class="page-link nagoyameshi-page-link">‹</a>
+                                            <a th:unless="${restaurantPage.isFirst()}" th:href="@{/restaurants(page = ${restaurantPage.getNumber() - 1}, keyword = ${keyword}, categoryId = ${categoryId}, price = ${price}, order = ${order}, isOpen = ${isOpen})}" class="page-link nagoyameshi-page-link">‹</a>
                                         </li>
                                         <li th:each="i : ${#numbers.sequence(0, restaurantPage.getTotalPages() - 1)}" class="page-item">
                                             <span th:if="${i == restaurantPage.getNumber()}" class="page-link active nagoyameshi-active" th:text="${i + 1}"></span>
-                                            <a th:unless="${i == restaurantPage.getNumber()}" th:href="@{/restaurants(page = ${i}, keyword = ${keyword}, categoryId = ${categoryId}, price = ${price}, order = ${order})}" class="page-link nagoyameshi-page-link" th:text="${i + 1}"></a>
+                                            <a th:unless="${i == restaurantPage.getNumber()}" th:href="@{/restaurants(page = ${i}, keyword = ${keyword}, categoryId = ${categoryId}, price = ${price}, order = ${order}, isOpen = ${isOpen})}" class="page-link nagoyameshi-page-link" th:text="${i + 1}"></a>
                                         </li>
                                         <li class="page-item">
                                             <span th:if="${restaurantPage.isLast()}" class="page-link disabled">›</span>
-                                            <a th:unless="${restaurantPage.isLast()}" th:href="@{/restaurants(page = ${restaurantPage.getNumber() + 1}, keyword = ${keyword}, categoryId = ${categoryId}, price = ${price}, order = ${order})}" class="page-link nagoyameshi-page-link">›</a>
+                                            <a th:unless="${restaurantPage.isLast()}" th:href="@{/restaurants(page = ${restaurantPage.getNumber() + 1}, keyword = ${keyword}, categoryId = ${categoryId}, price = ${price}, order = ${order}, isOpen = ${isOpen})}" class="page-link nagoyameshi-page-link">›</a>
                                         </li>
                                     </ul>
                                 </nav>

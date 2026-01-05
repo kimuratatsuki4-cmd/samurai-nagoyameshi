@@ -45,7 +45,9 @@ public class RestaurantController {
 			@RequestParam(name = "keyword", required = false) String keyword,
 			@RequestParam(name = "categoryId", required = false) Integer categoryId,
 			@RequestParam(name = "price", required = false) Integer price,
+			@RequestParam(name = "minRating", required = false) Double minRating,
 			@RequestParam(name = "order", required = false) String order,
+			@RequestParam(name = "isOpen", required = false) Boolean isOpen,
 			@PageableDefault(page = 0, size = 15, sort = "id", direction = Direction.ASC) Pageable pageable,
 			Model model) {
 
@@ -97,7 +99,31 @@ public class RestaurantController {
 				restaurantPage = restaurantService.findRestaurantsByLowestPriceLessThanEqualOrderByCreatedAtDesc(price,
 						pageable);
 			}
-		} else {
+		} else if (Boolean.TRUE.equals(isOpen)) {
+            // ▼▼▼ : 営業中 × 並べ替え ▼▼▼
+			if (order != null && order.equals("lowestPriceAsc")) {
+				restaurantPage = restaurantService.findOpenRestaurantsOrderByLowestPriceAsc(pageable);
+			} else if (order != null && order.equals("ratingDesc")) {
+				restaurantPage = restaurantService.findOpenRestaurantsOrderByAverageScoreDesc(pageable);
+			} else if (order != null && order.equals("popularDesc")) {
+				restaurantPage = restaurantService.findOpenRestaurantsOrderByReservationCountDesc(pageable);
+			} else {
+				// デフォルトは新着順相当(ID順または作成日順)
+				restaurantPage = restaurantService.findOpenRestaurants(pageable);
+			}
+		} else if (minRating != null) {
+            // ▼▼▼ : 評価絞込 × 並べ替え ▼▼▼
+			if (order != null && order.equals("lowestPriceAsc")) {
+				restaurantPage = restaurantService.findRestaurantsByMinRatingOrderByLowestPriceAsc(minRating, pageable);
+			} else if (order != null && order.equals("ratingDesc")) {
+				restaurantPage = restaurantService.findRestaurantsByMinRating(minRating, pageable);
+			} else if (order != null && order.equals("popularDesc")) {
+				restaurantPage = restaurantService.findRestaurantsByMinRatingOrderByReservationCountDesc(minRating, pageable);
+			} else {
+				// デフォルトは新着順
+				restaurantPage = restaurantService.findRestaurantsByMinRatingOrderByCreatedAtDesc(minRating, pageable);
+			}
+		}else {
 			if (order != null && order.equals("lowestPriceAsc")) {
 				restaurantPage = restaurantService.findAllRestaurantsByOrderByLowestPriceAsc(pageable);
 			} else if (order != null && order.equals("ratingDesc")) {
@@ -116,7 +142,8 @@ public class RestaurantController {
 		model.addAttribute("categoryId", categoryId);
 		model.addAttribute("price", price);
 		model.addAttribute("order", order);
-
+		model.addAttribute("isOpen", isOpen);
+		model.addAttribute("minRating", minRating);
 		return "restaurants/index";
 	}
 

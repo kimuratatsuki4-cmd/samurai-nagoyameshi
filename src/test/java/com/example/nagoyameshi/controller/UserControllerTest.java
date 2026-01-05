@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +82,8 @@ public class UserControllerTest {
    @WithUserDetails("taro.samurai@example.com")
    @Transactional
    public void ログイン済みの場合は会員情報更新後に会員用の会員情報ページにリダイレクトする() throws Exception {
-       User user = userService.findUserByEmail("taro.samurai@example.com");
+       Optional<User> userOptional = userService.findUserByEmail("taro.samurai@example.com");
+       User user = userOptional.get();
 
        mockMvc.perform(post("/user/update")
                .with(csrf())

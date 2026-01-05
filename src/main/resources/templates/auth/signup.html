@@ -167,6 +167,18 @@
                                 </div>
                             </form>
 
+                            <div class="d-flex align-items-center my-4">
+                                <hr class="flex-grow-1">
+                                <span class="mx-2 text-muted small">または</span>
+                                <hr class="flex-grow-1">
+                            </div>
+
+                            <div class="form-group mb-4">
+                                <a th:href="@{/oauth2/authorization/google}" class="btn btn-light border shadow-sm w-100 d-flex align-items-center justify-content-center">
+                                    <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google logo" style="width: 24px; height: 24px; margin-right: 10px;">
+                                    Googleで登録
+                                </a>
+                            </div>
                             <div class="text-center">
                                 <a th:href="@{/login}">すでに登録済みの方はこちら</a>
                             </div>
