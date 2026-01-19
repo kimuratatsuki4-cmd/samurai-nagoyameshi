@@ -33,7 +33,8 @@ public class ReviewService {
 
     // 指定した店舗のすべてのレビューを作成日時が新しい順に並べ替え、ページングされた状態で取得する
     public Page<Review> findReviewsByRestaurantOrderByCreatedAtDesc(Restaurant restaurant, Pageable pageable) {
-        return reviewRepository.findByRestaurantOrderByCreatedAtDesc(restaurant, pageable);
+        return reviewRepository.findByRestaurantOrderByCreatedAtDesc(Objects.requireNonNull(restaurant),
+                Objects.requireNonNull(pageable));
     }
 
     // レビューのレコード数を取得する
@@ -73,6 +74,7 @@ public class ReviewService {
 
     // 指定したユーザーが指定した店舗のレビューをすでに投稿済みかどうかをチェックする
     public boolean hasUserAlreadyReviewed(Restaurant restaurant, User user) {
-        return reviewRepository.findByRestaurantAndUser(restaurant, user) != null;
+        return reviewRepository.findByRestaurantAndUser(Objects.requireNonNull(restaurant),
+                Objects.requireNonNull(user)) != null;
     }
 }

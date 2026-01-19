@@ -26,7 +26,7 @@ public class CategoryRestaurantService {
 	}
 
 	public List<Integer> findCategoryIdsByRestaurantOrderByIdAsc(Restaurant restaurant) {
-		return categoryRestaurantRepository.findCategoryIdsByRestaurantOrderByIdAsc(restaurant);
+		return categoryRestaurantRepository.findCategoryIdsByRestaurantOrderByIdAsc(Objects.requireNonNull(restaurant));
 	}
 
 	@Transactional
@@ -38,7 +38,8 @@ public class CategoryRestaurantService {
 			if (categoryId != null) {
 				Optional<Category> optionalCategory = categoryService.findCategoryById(categoryId);
 				if (optionalCategory.isPresent()) {
-					categoryRestaurantRepository.findByCategoryAndRestaurant(optionalCategory.get(), restaurant);
+					categoryRestaurantRepository.findByCategoryAndRestaurant(optionalCategory.get(),
+							Objects.requireNonNull(restaurant));
 				} else {
 					CategoryRestaurant categoryRestaurant = new CategoryRestaurant();
 					categoryRestaurant.setCategory(optionalCategory.get());
@@ -52,7 +53,7 @@ public class CategoryRestaurantService {
 	@Transactional
 	public void syncCategoriesRestaurants(List<Integer> newCategoryIds, Restaurant restaurant) {
 		List<CategoryRestaurant> currentCategoryRestaurants = categoryRestaurantRepository
-				.findByRestaurantOrderByIdAsc(restaurant);
+				.findByRestaurantOrderByIdAsc(Objects.requireNonNull(restaurant));
 		// newCategoryIdsがnullの場合はすべてのエンティティを削除する
 		if (newCategoryIds == null) {
 			for (CategoryRestaurant categoryRestaurant : currentCategoryRestaurants) {
@@ -75,7 +76,8 @@ public class CategoryRestaurantService {
 				if (optionalCategoryOptional.isPresent()) {
 					Category category = optionalCategoryOptional.get();
 					Optional<CategoryRestaurant> optionalCategoryRestaurant = categoryRestaurantRepository
-							.findByCategoryAndRestaurant(category, restaurant);
+							.findByCategoryAndRestaurant(Objects.requireNonNull(category),
+									Objects.requireNonNull(restaurant));
 					if (optionalCategoryRestaurant.isEmpty()) {
 						CategoryRestaurant categoryRestaurant = new CategoryRestaurant();
 						categoryRestaurant.setRestaurant(restaurant);

@@ -24,17 +24,17 @@ public class CategoryService {
 
 	// すべてのカテゴリをページングされた状態で取得する
 	public Page<Category> findAllCategories(Pageable pageable) {
-		return categoryRepository.findAll(pageable);
+		return categoryRepository.findAll(Objects.requireNonNull(pageable));
 	}
 
 	// 指定されたキーワードをカテゴリ名に含むカテゴリを、ページングされた状態で取得する
 	public Page<Category> findCategoriesByNameLike(String keyword, Pageable pageable) {
-		return categoryRepository.findByNameLike("%" + keyword + "%", pageable);
+		return categoryRepository.findByNameLike("%" + keyword + "%", Objects.requireNonNull(pageable));
 	}
 
 	// 指定したidを持つカテゴリを取得する
 	public Optional<Category> findCategoryById(Integer id) {
-		return categoryRepository.findById(id);
+		return categoryRepository.findById(Objects.requireNonNull(id));
 	}
 
 	// カテゴリのレコード数を取得する
@@ -76,7 +76,7 @@ public class CategoryService {
 	}
 
 	public Category findFirstCategoryByName(String name) {
-		return categoryRepository.findFirstByName(name);
+		return categoryRepository.findFirstByName(Objects.requireNonNull(name));
 	}
 
 }

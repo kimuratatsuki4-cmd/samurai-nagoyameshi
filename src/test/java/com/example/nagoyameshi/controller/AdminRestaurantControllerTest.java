@@ -414,7 +414,7 @@ public class AdminRestaurantControllerTest {
     @WithUserDetails("hanako.samurai@example.com")
     @Transactional
     public void 管理者としてログイン済みの場合は店舗削除後に店舗一覧ページにリダイレクトする() throws Exception {
-        mockMvc.perform(post("/admin/restaurants/1/delete").with(csrf()))
+        mockMvc.perform(post("/admin/restaurants/1/delete").with(Objects.requireNonNull(csrf())))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/restaurants"));
 

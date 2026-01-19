@@ -28,7 +28,7 @@ public class FavoriteService {
      * @return 該当するお気に入り (存在しない場合はOptional.empty())
      */
     public Optional<Favorite> findFavoriteById(Integer id) {
-        return favoriteRepository.findById(id);
+        return favoriteRepository.findById(Objects.requireNonNull(id));
     }
 
     /**
@@ -39,7 +39,8 @@ public class FavoriteService {
      * @return 該当するお気に入り (存在しない場合はOptional.empty())
      */
     public Optional<Favorite> findFavoriteByRestaurantAndUser(Restaurant restaurant, User user) {
-        return favoriteRepository.findByRestaurantAndUser(restaurant, user);
+        return favoriteRepository.findByRestaurantAndUser(Objects.requireNonNull(restaurant),
+                Objects.requireNonNull(user));
     }
 
     /**
@@ -50,7 +51,8 @@ public class FavoriteService {
      * @return ページングされたお気に入りリスト
      */
     public Page<Favorite> findFavoritesByUserOrderByCreatedAtDesc(User user, Pageable pageable) {
-        return favoriteRepository.findByUserOrderByCreatedAtDesc(user, pageable);
+        return favoriteRepository.findByUserOrderByCreatedAtDesc(Objects.requireNonNull(user),
+                Objects.requireNonNull(pageable));
     }
 
     /**
@@ -104,6 +106,7 @@ public class FavoriteService {
      * @return すでにお気に入りに追加済みであればtrue、そうでなければfalse
      */
     public boolean isFavorite(Restaurant restaurant, User user) {
-        return favoriteRepository.findByRestaurantAndUser(restaurant, user).isPresent();
+        return favoriteRepository
+                .findByRestaurantAndUser(Objects.requireNonNull(restaurant), Objects.requireNonNull(user)).isPresent();
     }
 }

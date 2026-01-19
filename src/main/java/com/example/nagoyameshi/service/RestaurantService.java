@@ -43,7 +43,7 @@ public class RestaurantService {
 
 	// 指定したidを持つ店舗を取得する
 	public Optional<Restaurant> findRestaurantById(Integer id) {
-		return restaurantRepository.findById(id);
+		return restaurantRepository.findById(Objects.requireNonNull(id));
 	}
 
 	// 店舗のレコード数を取得する
@@ -142,17 +142,17 @@ public class RestaurantService {
 
 	// すべての店舗をページングされた状態で取得する
 	public Page<Restaurant> findAllRestaurants(Pageable pageable) {
-		return restaurantRepository.findAll(pageable);
+		return restaurantRepository.findAll(Objects.requireNonNull(pageable));
 	}
 
 	// 指定されたキーワードを店舗名に含む店舗を、ページングされた状態で取得する
 	public Page<Restaurant> findRestaurantsByNameLike(String keyword, Pageable pageable) {
-		return restaurantRepository.findByNameLike("%" + keyword + "%", pageable);
+		return restaurantRepository.findByNameLike("%" + keyword + "%", Objects.requireNonNull(pageable));
 	}
 
 	// 指定された店舗の定休日のday_indexフィールドの値をリストで取得する
 	public List<Integer> findDayIndexesByRestaurantId(Integer restaurantId) {
-		return restaurantRepository.findDayIndexesByRestaurantId(restaurantId);
+		return restaurantRepository.findDayIndexesByRestaurantId(Objects.requireNonNull(restaurantId));
 	}
 
 	// =========================================================================
@@ -162,50 +162,54 @@ public class RestaurantService {
 	// --- 3.1. 作成日時 (CreatedAtDesc) による並べ替え ---
 
 	public Page<Restaurant> findAllRestaurantsByOrderByCreatedAtDesc(Pageable pageable) {
-		return restaurantRepository.findAllRestaurantsByOrderByCreatedAtDesc(pageable);
+		return restaurantRepository.findAllRestaurantsByOrderByCreatedAtDesc(Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByNameLikeOrAddressLikeOrCategoryNameLikeOrderByCreatedAtDesc(
 			String nameKeyword, String addressKeyword, String categoryNameKeyword, Pageable pageable) {
 		return restaurantRepository.findByNameLikeOrAddressLikeOrCategoryNameLikeOrderByCreatedAtDesc(nameKeyword,
-				addressKeyword, categoryNameKeyword, pageable);
+				addressKeyword, categoryNameKeyword, Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByCategoryIdOrderByCreatedAtDesc(Integer categoryId, Pageable pageable) {
-		return restaurantRepository.findByCategoryIdOrderByCreatedAtDesc(categoryId, pageable);
+		return restaurantRepository.findByCategoryIdOrderByCreatedAtDesc(Objects.requireNonNull(categoryId),
+				Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByLowestPriceLessThanEqualOrderByCreatedAtDesc(Integer price,
 			Pageable pageable) {
-		return restaurantRepository.findByLowestPriceLessThanEqualOrderByCreatedAtDesc(price, pageable);
+		return restaurantRepository.findByLowestPriceLessThanEqualOrderByCreatedAtDesc(Objects.requireNonNull(price),
+				Objects.requireNonNull(pageable));
 	}
 
 	// --- 3.2. 最低価格 (LowestPriceAsc) による並べ替え ---
 
 	// すべての店舗を最低価格が安い順に並べ替え、ページングされた状態で取得する
 	public Page<Restaurant> findAllRestaurantsByOrderByLowestPriceAsc(Pageable pageable) {
-		return restaurantRepository.findAllByOrderByLowestPriceAsc(pageable);
+		return restaurantRepository.findAllByOrderByLowestPriceAsc(Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByNameLikeOrAddressLikeOrCategoryNameLikeOrderByLowestPriceAsc(
 			String nameKeyword, String addressKeyword, String categoryNameKeyword, Pageable pageable) {
 		return restaurantRepository.findRestaurantsByNameLikeOrAddressLikeOrCategoryNameLikeOrderByLowestPriceAsc(
-				nameKeyword, addressKeyword, categoryNameKeyword, pageable);
+				nameKeyword, addressKeyword, categoryNameKeyword, Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByCategoryIdOrderByLowestPriceAsc(Integer categoryId, Pageable pageable) {
-		return restaurantRepository.findByCategoryIdOrderByLowestPriceAsc(categoryId, pageable);
+		return restaurantRepository.findByCategoryIdOrderByLowestPriceAsc(Objects.requireNonNull(categoryId),
+				Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByLowestPriceLessThanEqualOrderByLowestPriceAsc(Integer price,
 			Pageable pageable) {
-		return restaurantRepository.findByLowestPriceLessThanEqualOrderByLowestPriceAsc(price, pageable);
+		return restaurantRepository.findByLowestPriceLessThanEqualOrderByLowestPriceAsc(Objects.requireNonNull(price),
+				Objects.requireNonNull(pageable));
 	}
 
 	// --- 3.3. 平均評価スコア (AverageScoreDesc) による並べ替え ---
 
 	public Page<Restaurant> findAllRestaurantsByOrderByAverageScoreDesc(Pageable pageable) {
-		return restaurantRepository.findAllByOrderByAverageScoreDesc(pageable);
+		return restaurantRepository.findAllByOrderByAverageScoreDesc(Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByNameLikeOrAddressLikeOrCategoryNameLikeOrderByAverageScoreDesc(
@@ -218,22 +222,24 @@ public class RestaurantService {
 				nameKeyword,
 				addressKeyword,
 				categoryNameKeyword,
-				pageable);
+				Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByCategoryIdOrderByAverageScoreDesc(Integer categoryId, Pageable pageable) {
-		return restaurantRepository.findByCategoryIdOrderByAverageScoreDesc(categoryId, pageable);
+		return restaurantRepository.findByCategoryIdOrderByAverageScoreDesc(Objects.requireNonNull(categoryId),
+				Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByLowestPriceLessThanEqualOrderByAverageScoreDesc(Integer price,
 			Pageable pageable) {
-		return restaurantRepository.findByLowestPriceLessThanEqualOrderByAverageScoreDesc(price, pageable);
+		return restaurantRepository.findByLowestPriceLessThanEqualOrderByAverageScoreDesc(Objects.requireNonNull(price),
+				Objects.requireNonNull(pageable));
 	}
 
 	// --- 3.4. 予約数 (ReservationCountDesc) による並べ替え ---
 
 	public Page<Restaurant> findAllRestaurantsByOrderByReservationCountDesc(Pageable pageable) {
-		return restaurantRepository.findAllByOrderByReservationCountDesc(pageable);
+		return restaurantRepository.findAllByOrderByReservationCountDesc(Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByNameLikeOrAddressLikeOrCategoryNameLikeOrderByReservationCountDesc(
@@ -244,17 +250,19 @@ public class RestaurantService {
 		// リポジトリメソッドの呼び出しに合わせて引数を調整
 		return restaurantRepository.findByNameLikeOrAddressLikeOrCategoryNameLikeOrderByReservationCountDesc(
 				nameKeyword,
-				addressKeyword, categoryNameKeyword, pageable);
+				addressKeyword, categoryNameKeyword, Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByCategoryIdOrderByReservationCountDesc(Integer categoryId,
 			Pageable pageable) {
-		return restaurantRepository.findByCategoryIdOrderByReservationCountDesc(categoryId, pageable);
+		return restaurantRepository.findByCategoryIdOrderByReservationCountDesc(Objects.requireNonNull(categoryId),
+				Objects.requireNonNull(pageable));
 	}
 
 	public Page<Restaurant> findRestaurantsByLowestPriceLessThanEqualOrderByReservationCountDesc(Integer price,
 			Pageable pageable) {
-		return restaurantRepository.findByLowestPriceLessThanEqualOrderByReservationCountDesc(price, pageable);
+		return restaurantRepository.findByLowestPriceLessThanEqualOrderByReservationCountDesc(
+				Objects.requireNonNull(price), Objects.requireNonNull(pageable));
 	}
 
 	// --- 3.5. 現在営業中の店舗検索---
@@ -272,7 +280,7 @@ public class RestaurantService {
 			dayIndex = 0;
 		}
 
-		return restaurantRepository.findOpenRestaurants(currentTime, dayIndex, pageable);
+		return restaurantRepository.findOpenRestaurants(currentTime, dayIndex, Objects.requireNonNull(pageable));
 	}
 
 	// 現在営業中 × 価格が安い順
@@ -283,7 +291,8 @@ public class RestaurantService {
 		if (dayIndex == 7)
 			dayIndex = 0;
 
-		return restaurantRepository.findOpenRestaurantsOrderByLowestPriceAsc(currentTime, dayIndex, pageable);
+		return restaurantRepository.findOpenRestaurantsOrderByLowestPriceAsc(currentTime, dayIndex,
+				Objects.requireNonNull(pageable));
 	}
 
 	// 現在営業中 × 評価が高い順
@@ -294,7 +303,8 @@ public class RestaurantService {
 		if (dayIndex == 7)
 			dayIndex = 0;
 
-		return restaurantRepository.findOpenRestaurantsOrderByAverageScoreDesc(currentTime, dayIndex, pageable);
+		return restaurantRepository.findOpenRestaurantsOrderByAverageScoreDesc(currentTime, dayIndex,
+				Objects.requireNonNull(pageable));
 	}
 
 	// 現在営業中 × 予約数が多い順
@@ -305,27 +315,32 @@ public class RestaurantService {
 		if (dayIndex == 7)
 			dayIndex = 0;
 
-		return restaurantRepository.findOpenRestaurantsOrderByReservationCountDesc(currentTime, dayIndex, pageable);
+		return restaurantRepository.findOpenRestaurantsOrderByReservationCountDesc(currentTime, dayIndex,
+				Objects.requireNonNull(pageable));
 	}
 
 	// --- 3.6. 指定された評価以上の店舗を検索する
 	public Page<Restaurant> findRestaurantsByMinRating(Double minRating, Pageable pageable) {
-		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByAverageScoreDesc(minRating, pageable);
+		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByAverageScoreDesc(
+				Objects.requireNonNull(minRating), Objects.requireNonNull(pageable));
 	}
 
 	// 評価で絞込 × 新着順
 	public Page<Restaurant> findRestaurantsByMinRatingOrderByCreatedAtDesc(Double minRating, Pageable pageable) {
-		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByCreatedAtDesc(minRating, pageable);
+		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByCreatedAtDesc(
+				Objects.requireNonNull(minRating), Objects.requireNonNull(pageable));
 	}
 
 	// 評価で絞込 × 価格が安い順
 	public Page<Restaurant> findRestaurantsByMinRatingOrderByLowestPriceAsc(Double minRating, Pageable pageable) {
-		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByLowestPriceAsc(minRating, pageable);
+		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByLowestPriceAsc(
+				Objects.requireNonNull(minRating), Objects.requireNonNull(pageable));
 	}
 
 	// 評価で絞込 × 予約数が多い順
 	public Page<Restaurant> findRestaurantsByMinRatingOrderByReservationCountDesc(Double minRating, Pageable pageable) {
-		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByReservationCountDesc(minRating, pageable);
+		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByReservationCountDesc(
+				Objects.requireNonNull(minRating), Objects.requireNonNull(pageable));
 	}
 
 	// =========================================================================

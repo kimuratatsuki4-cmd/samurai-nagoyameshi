@@ -106,19 +106,17 @@ public class UserService {
 		userRepository.save(Objects.requireNonNull(user));
 	}
 
-	@SuppressWarnings("null")
 	public Page<User> findAllUsers(Pageable pageable) {
-		return userRepository.findAll(pageable);
+		return userRepository.findAll(Objects.requireNonNull(pageable));
 	}
 
 	public Page<User> findUsersByNameLikeOrFuriganaLike(String nameKeyword, String furiganaKeyword, Pageable pageable) {
 		return userRepository.findByNameLikeOrFuriganaLike("%" + nameKeyword + "%", "%" + furiganaKeyword + "%",
-				pageable);
+				Objects.requireNonNull(pageable));
 	}
 
-	@SuppressWarnings("null")
 	public Optional<User> findUserById(Integer id) {
-		return userRepository.findById(id);
+		return userRepository.findById(Objects.requireNonNull(id));
 	}
 
 	public boolean isEmailChanged(UserEditForm userEditForm, User user) {
@@ -126,7 +124,7 @@ public class UserService {
 	}
 
 	public Optional<User> findUserByEmail(String email) {
-		return userRepository.findByEmail(email);
+		return userRepository.findByEmail(Objects.requireNonNull(email));
 	}
 
 	@Transactional
@@ -158,7 +156,7 @@ public class UserService {
 	}
 
 	public Integer countUsersByRole_Name(String roleName) {
-		return userRepository.countByRole_Name(roleName);
+		return userRepository.countByRole_Name(Objects.requireNonNull(roleName));
 	}
 
 }

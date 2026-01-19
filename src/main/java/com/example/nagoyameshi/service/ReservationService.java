@@ -28,7 +28,7 @@ public class ReservationService {
      * 指定したIDを持つ予約を取得する。
      */
     public Optional<Reservation> findReservationById(Integer id) {
-        return reservationRepository.findById(id);
+        return reservationRepository.findById(Objects.requireNonNull(id));
     }
 
     /**
@@ -36,7 +36,8 @@ public class ReservationService {
      * ページングされた状態で取得する。
      */
     public Page<Reservation> findReservationsByUserOrderByReservedDatetimeDesc(User user, Pageable pageable) {
-        return reservationRepository.findByUserOrderByReservedDatetimeDesc(user, pageable);
+        return reservationRepository.findByUserOrderByReservedDatetimeDesc(Objects.requireNonNull(user),
+                Objects.requireNonNull(pageable));
     }
 
     /**
