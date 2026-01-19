@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -62,9 +63,9 @@ public class UserService {
 			user.setOccupation(null);
 		}
 
-		return userRepository.save(user);
+		return userRepository.save(Objects.requireNonNull(user));
 	}
-	
+
 	@Transactional
 	public void updateUser(User user, UserEditForm userEditForm) {
 		user.setName(userEditForm.getName());
@@ -73,7 +74,7 @@ public class UserService {
 		user.setAddress(userEditForm.getAddress());
 		user.setPhoneNumber(userEditForm.getPhoneNumber());
 		user.setEmail(userEditForm.getEmail());
-		
+
 		if (!userEditForm.getBirthday().isEmpty()) {
 			user.setBirthday(LocalDate.parse(userEditForm.getBirthday(), DateTimeFormatter.ofPattern("yyyyMMdd")));
 		} else {
@@ -85,7 +86,7 @@ public class UserService {
 		} else {
 			user.setOccupation(null);
 		}
-		userRepository.save(user);
+		userRepository.save(Objects.requireNonNull(user));
 	}
 
 	public boolean isEmailRegisterd(String email) {
@@ -98,65 +99,66 @@ public class UserService {
 	public boolean isSamePassword(String password, String passwordConfirmation) {
 		return password.equals(passwordConfirmation);
 	}
-	
+
 	@Transactional
 	public void enableUser(User user) {
 		user.setEnabled(true);
-		userRepository.save(user);
+		userRepository.save(Objects.requireNonNull(user));
 	}
-	
+
 	@SuppressWarnings("null")
 	public Page<User> findAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable);
-    }
-	
+		return userRepository.findAll(pageable);
+	}
+
 	public Page<User> findUsersByNameLikeOrFuriganaLike(String nameKeyword, String furiganaKeyword, Pageable pageable) {
-        return userRepository.findByNameLikeOrFuriganaLike("%" + nameKeyword + "%", "%" + furiganaKeyword + "%", pageable);
-    }
+		return userRepository.findByNameLikeOrFuriganaLike("%" + nameKeyword + "%", "%" + furiganaKeyword + "%",
+				pageable);
+	}
 
-    @SuppressWarnings("null")
+	@SuppressWarnings("null")
 	public Optional<User> findUserById(Integer id) {
-        return userRepository.findById(id);
-    }
-    
-    public boolean isEmailChanged(UserEditForm userEditForm, User user) {
-    	return !userEditForm.getEmail().equals(user.getAddress());
+		return userRepository.findById(id);
 	}
-    
-    public Optional<User> findUserByEmail(String email) {
-    	return userRepository.findByEmail(email);
+
+	public boolean isEmailChanged(UserEditForm userEditForm, User user) {
+		return !userEditForm.getEmail().equals(user.getAddress());
 	}
-    
-    @Transactional
-    public void saveStripeCustomerId(User user, String stripeCustomerId) {
+
+	public Optional<User> findUserByEmail(String email) {
+		return userRepository.findByEmail(email);
+	}
+
+	@Transactional
+	public void saveStripeCustomerId(User user, String stripeCustomerId) {
 		user.setStripeCustomerId(stripeCustomerId);
-		userRepository.save(user);
-		}
-    
-    @Transactional
-    public void updateRole(User user, String roleName) {
-    	Role role = roleRepository.findByName(roleName);
-		user.setRole(role);
-		userRepository.save(user);
+		userRepository.save(Objects.requireNonNull(user));
 	}
-    
-    // 認証情報のロールを更新する
-    public void refreshAuthenticationByRole(String newRole) {
-        // 現在の認証情報を取得する
-        Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // 新しい認証情報を作成する
-        List<SimpleGrantedAuthority> simpleGrantedAuthorities = new ArrayList<>();
-        simpleGrantedAuthorities.add(new SimpleGrantedAuthority(newRole));
-        Authentication newAuthentication = new UsernamePasswordAuthenticationToken(currentAuthentication.getPrincipal(), currentAuthentication.getCredentials(), simpleGrantedAuthorities);
+	@Transactional
+	public void updateRole(User user, String roleName) {
+		Role role = roleRepository.findByName(roleName);
+		user.setRole(role);
+		userRepository.save(Objects.requireNonNull(user));
+	}
 
-        // 認証情報を更新する
-        SecurityContextHolder.getContext().setAuthentication(newAuthentication);
-    }
-    
-    public Integer countUsersByRole_Name(String roleName) {
+	// 認証情報のロールを更新する
+	public void refreshAuthenticationByRole(String newRole) {
+		// 現在の認証情報を取得する
+		Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
+
+		// 新しい認証情報を作成する
+		List<SimpleGrantedAuthority> simpleGrantedAuthorities = new ArrayList<>();
+		simpleGrantedAuthorities.add(new SimpleGrantedAuthority(newRole));
+		Authentication newAuthentication = new UsernamePasswordAuthenticationToken(currentAuthentication.getPrincipal(),
+				currentAuthentication.getCredentials(), simpleGrantedAuthorities);
+
+		// 認証情報を更新する
+		SecurityContextHolder.getContext().setAuthentication(newAuthentication);
+	}
+
+	public Integer countUsersByRole_Name(String roleName) {
 		return userRepository.countByRole_Name(roleName);
 	}
-    
-    
+
 }

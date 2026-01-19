@@ -1,6 +1,7 @@
 package com.example.nagoyameshi.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -30,6 +31,9 @@ public class CategoryRestaurantService {
 
 	@Transactional
 	public void createCategoriesRestaurants(List<Integer> categoryIds, Restaurant restaurant) {
+		if (categoryIds == null) {
+			return;
+		}
 		for (Integer categoryId : categoryIds) {
 			if (categoryId != null) {
 				Optional<Category> optionalCategory = categoryService.findCategoryById(categoryId);
@@ -39,7 +43,7 @@ public class CategoryRestaurantService {
 					CategoryRestaurant categoryRestaurant = new CategoryRestaurant();
 					categoryRestaurant.setCategory(optionalCategory.get());
 					categoryRestaurant.setRestaurant(restaurant);
-					categoryRestaurantRepository.save(categoryRestaurant);
+					categoryRestaurantRepository.save(Objects.requireNonNull(categoryRestaurant));
 				}
 			}
 		}
@@ -52,16 +56,19 @@ public class CategoryRestaurantService {
 		// newCategoryIdsがnullの場合はすべてのエンティティを削除する
 		if (newCategoryIds == null) {
 			for (CategoryRestaurant categoryRestaurant : currentCategoryRestaurants) {
-				categoryRestaurantRepository.delete(categoryRestaurant);
+				if (categoryRestaurant != null) {
+					categoryRestaurantRepository.delete(Objects.requireNonNull(categoryRestaurant));
+				}
 			}
+			return;
 		}
 		// 既存のエンティティが新しいリストに存在しない場合は削除する
 		for (CategoryRestaurant categoryRestaurant : currentCategoryRestaurants) {
-			if (!newCategoryIds.contains(categoryRestaurant.getCategory().getId())) {
-				categoryRestaurantRepository.delete(categoryRestaurant);
+			if (categoryRestaurant != null && !newCategoryIds.contains(categoryRestaurant.getCategory().getId())) {
+				categoryRestaurantRepository.delete(Objects.requireNonNull(categoryRestaurant));
 			}
 		}
-		//		新しいカテゴリとの結びつけがある場合、新しいエンティティを作成する。
+		// 新しいカテゴリとの結びつけがある場合、新しいエンティティを作成する。
 		for (Integer categoryId : newCategoryIds) {
 			if (categoryId != null) {
 				Optional<Category> optionalCategoryOptional = categoryService.findCategoryById(categoryId);
@@ -73,7 +80,7 @@ public class CategoryRestaurantService {
 						CategoryRestaurant categoryRestaurant = new CategoryRestaurant();
 						categoryRestaurant.setRestaurant(restaurant);
 						categoryRestaurant.setCategory(category);
-						categoryRestaurantRepository.save(categoryRestaurant);
+						categoryRestaurantRepository.save(Objects.requireNonNull(categoryRestaurant));
 					}
 
 				}
@@ -82,6 +89,5 @@ public class CategoryRestaurantService {
 		}
 
 	}
-
 
 }

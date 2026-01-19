@@ -1,6 +1,7 @@
 package com.example.nagoyameshi.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -52,19 +53,21 @@ public class CategoryService {
 
 		category.setName(categoryRegisterForm.getName());
 
-		categoryRepository.save(category);
+		categoryRepository.save(Objects.requireNonNull(category));
 	}
 
 	@Transactional
 	public void updateCategory(CategoryEditForm categoryEditForm, Category category) {
 		category.setName(categoryEditForm.getName());
 
-		categoryRepository.save(category);
+		categoryRepository.save(Objects.requireNonNull(category));
 	}
 
 	@Transactional
 	public void deleteCategory(Category category) {
-		categoryRepository.delete(category);
+		if (category != null) {
+			categoryRepository.delete(Objects.requireNonNull(category));
+		}
 	}
 
 	public List<Category> findAllCategories() {

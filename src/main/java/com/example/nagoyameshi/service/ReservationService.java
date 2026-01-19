@@ -1,6 +1,7 @@
 package com.example.nagoyameshi.service;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -15,14 +16,15 @@ import com.example.nagoyameshi.repository.ReservationRepository; // 🚨 DIの�
 
 @Service // サービスコンポーネントとして登録
 public class ReservationService {
-    
+
     private final ReservationRepository reservationRepository; // 🚨 リポジトリをフィールドとして定義
-    
-    // 🚨 コンストラクタインジェクション (DI)
+
+    // コンストラクタインジェクション (DI)
     public ReservationService(ReservationRepository reservationRepository) {
         this.reservationRepository = reservationRepository;
     }
-        /**
+
+    /**
      * 指定したIDを持つ予約を取得する。
      */
     public Optional<Reservation> findReservationById(Integer id) {
@@ -56,28 +58,28 @@ public class ReservationService {
      */
     public void createReservation(Restaurant restaurant, User user, ReservationRegisterForm reservationRegisterForm) {
         Reservation reservation = new Reservation();
-        
+
         // 日付と時間を結合してLocalDateTimeを作成
         LocalDateTime reservedDateTime = LocalDateTime.of(
-            reservationRegisterForm.getReservationDate(), 
-            reservationRegisterForm.getReservationTime()
-        );
-        
+                reservationRegisterForm.getReservationDate(),
+                reservationRegisterForm.getReservationTime());
+
         reservation.setRestaurant(restaurant);
         reservation.setUser(user);
         reservation.setReservedDatetime(reservedDateTime);
         reservation.setNumberOfPeople(reservationRegisterForm.getNumberOfPeople());
-        
-        reservationRepository.save(reservation);
+
+        reservationRepository.save(Objects.requireNonNull(reservation));
     }
 
     /**
      * 指定した予約をデータベースから削除する。
      */
     public void deleteReservation(Reservation reservation) {
-        reservationRepository.delete(reservation);
+        if (reservation != null) {
+            reservationRepository.delete(Objects.requireNonNull(reservation));
+        }
     }
-
 
     /**
      * 予約日時が現在よりも2時間以上後であればtrueを返す。

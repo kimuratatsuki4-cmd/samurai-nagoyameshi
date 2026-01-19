@@ -1,5 +1,6 @@
 package com.example.nagoyameshi.service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -16,59 +17,62 @@ import com.example.nagoyameshi.repository.ReviewRepository;
 
 @Service
 public class ReviewService {
-   private final ReviewRepository reviewRepository;
+    private final ReviewRepository reviewRepository;
 
-   public ReviewService(ReviewRepository reviewRepository) {
-       this.reviewRepository = reviewRepository;
-   }
+    public ReviewService(ReviewRepository reviewRepository) {
+        this.reviewRepository = reviewRepository;
+    }
 
-   // 指定したidを持つレビューを取得する
-   public Optional<Review> findReviewById(Integer id) {
-       return reviewRepository.findById(id);
-   }
+    // 指定したidを持つレビューを取得する
+    public Optional<Review> findReviewById(Integer id) {
+        if (id == null) {
+            return Optional.empty();
+        }
+        return reviewRepository.findById(Objects.requireNonNull(id));
+    }
 
-   // 指定した店舗のすべてのレビューを作成日時が新しい順に並べ替え、ページングされた状態で取得する
-   public Page<Review> findReviewsByRestaurantOrderByCreatedAtDesc(Restaurant restaurant, Pageable pageable) {
-       return reviewRepository.findByRestaurantOrderByCreatedAtDesc(restaurant, pageable);
-   }
+    // 指定した店舗のすべてのレビューを作成日時が新しい順に並べ替え、ページングされた状態で取得する
+    public Page<Review> findReviewsByRestaurantOrderByCreatedAtDesc(Restaurant restaurant, Pageable pageable) {
+        return reviewRepository.findByRestaurantOrderByCreatedAtDesc(restaurant, pageable);
+    }
 
-   // レビューのレコード数を取得する
-   public long countReviews() {
-       return reviewRepository.count();
-   }
+    // レビューのレコード数を取得する
+    public long countReviews() {
+        return reviewRepository.count();
+    }
 
-   // idが最も大きいレビューを取得する
-   public Review findFirstReviewByOrderByIdDesc() {
-       return reviewRepository.findFirstByOrderByIdDesc();
-   }
+    // idが最も大きいレビューを取得する
+    public Review findFirstReviewByOrderByIdDesc() {
+        return reviewRepository.findFirstByOrderByIdDesc();
+    }
 
-   @Transactional
-   public void createReview(ReviewRegisterForm reviewRegisterForm, Restaurant restaurant, User user) {
-       Review review = new Review();
+    @Transactional
+    public void createReview(ReviewRegisterForm reviewRegisterForm, Restaurant restaurant, User user) {
+        Review review = new Review();
 
-       review.setContent(reviewRegisterForm.getContent());
-       review.setScore(reviewRegisterForm.getScore());
-       review.setRestaurant(restaurant);
-       review.setUser(user);
+        review.setContent(reviewRegisterForm.getContent());
+        review.setScore(reviewRegisterForm.getScore());
+        review.setRestaurant(restaurant);
+        review.setUser(user);
 
-       reviewRepository.save(review);
-   }
+        reviewRepository.save(Objects.requireNonNull(review));
+    }
 
-   @Transactional
-   public void updateReview(ReviewEditForm reviewEditForm, Review review) {
-       review.setScore(reviewEditForm.getScore());
-       review.setContent(reviewEditForm.getContent());
+    @Transactional
+    public void updateReview(ReviewEditForm reviewEditForm, Review review) {
+        review.setScore(reviewEditForm.getScore());
+        review.setContent(reviewEditForm.getContent());
 
-       reviewRepository.save(review);
-   }
+        reviewRepository.save(Objects.requireNonNull(review));
+    }
 
-   @Transactional
-   public void deleteReview(Review review) {
-       reviewRepository.delete(review);
-   }
+    @Transactional
+    public void deleteReview(Review review) {
+        reviewRepository.delete(Objects.requireNonNull(review));
+    }
 
-   // 指定したユーザーが指定した店舗のレビューをすでに投稿済みかどうかをチェックする
-   public boolean hasUserAlreadyReviewed(Restaurant restaurant, User user) {
-       return reviewRepository.findByRestaurantAndUser(restaurant, user) != null;
-   }
+    // 指定したユーザーが指定した店舗のレビューをすでに投稿済みかどうかをチェックする
+    public boolean hasUserAlreadyReviewed(Restaurant restaurant, User user) {
+        return reviewRepository.findByRestaurantAndUser(restaurant, user) != null;
+    }
 }

@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.Optional;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,160 +24,163 @@ import com.example.nagoyameshi.service.CategoryService;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class AdminCategoryControllerTest {
-   @Autowired
-   private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-   @Autowired
-   private CategoryService categoryService;
+    @Autowired
+    private CategoryService categoryService;
 
-   @Test
-   public void 未ログインの場合は管理者用のカテゴリ一覧ページからログインページにリダイレクトする() throws Exception {
-       mockMvc.perform(get("/admin/categories"))
-              .andExpect(status().is3xxRedirection())
-              .andExpect(redirectedUrl("http://localhost/login"));
-   }
+    @Test
+    public void 未ログインの場合は管理者用のカテゴリ一覧ページからログインページにリダイレクトする() throws Exception {
+        mockMvc.perform(get("/admin/categories"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost/login"));
+    }
 
-   @Test
-   @WithUserDetails("taro.samurai@example.com")
-   public void 一般ユーザーとしてログイン済みの場合は管理者用のカテゴリ一覧ページが表示されずに403エラーが発生する() throws Exception {
-       mockMvc.perform(get("/admin/categories"))
-              .andExpect(status().isForbidden());
-   }
+    @Test
+    @WithUserDetails("taro.samurai@example.com")
+    public void 一般ユーザーとしてログイン済みの場合は管理者用のカテゴリ一覧ページが表示されずに403エラーが発生する() throws Exception {
+        mockMvc.perform(get("/admin/categories"))
+                .andExpect(status().isForbidden());
+    }
 
-   @Test
-   @WithUserDetails("hanako.samurai@example.com")
-   public void 管理者としてログイン済みの場合は管理者用のカテゴリ一覧ページが正しく表示される() throws Exception {
-       mockMvc.perform(get("/admin/categories"))
-              .andExpect(status().isOk())
-              .andExpect(view().name("admin/categories/index"));
-   }
+    @Test
+    @WithUserDetails("hanako.samurai@example.com")
+    public void 管理者としてログイン済みの場合は管理者用のカテゴリ一覧ページが正しく表示される() throws Exception {
+        mockMvc.perform(get("/admin/categories"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/categories/index"));
+    }
 
-   @Test
-   @Transactional
-   public void 未ログインの場合はカテゴリを登録せずにログインページにリダイレクトする() throws Exception {
-       // テスト前のレコード数を取得する
-       long countBefore = categoryService.countCategories();
+    @Test
+    @Transactional
+    public void 未ログインの場合はカテゴリを登録せずにログインページにリダイレクトする() throws Exception {
+        // テスト前のレコード数を取得する
+        long countBefore = categoryService.countCategories();
 
-       mockMvc.perform(post("/admin/categories/create").with(csrf()).param("name", "テストカテゴリ名"))
-              .andExpect(status().is3xxRedirection())
-              .andExpect(redirectedUrl("http://localhost/login"));
+        mockMvc.perform(post("/admin/categories/create").with(Objects.requireNonNull(csrf())).param("name", "テストカテゴリ名"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost/login"));
 
-       // テスト後のレコード数を取得する
-       long countAfter = categoryService.countCategories();
+        // テスト後のレコード数を取得する
+        long countAfter = categoryService.countCategories();
 
-       // レコード数が変わっていないことを検証する
-       assertThat(countAfter).isEqualTo(countBefore);
-   }
+        // レコード数が変わっていないことを検証する
+        assertThat(countAfter).isEqualTo(countBefore);
+    }
 
-   @Test
-   @WithUserDetails("taro.samurai@example.com")
-   @Transactional
-   public void 一般ユーザーとしてログイン済みの場合はカテゴリを登録せずに403エラーが発生する() throws Exception {
-       // テスト前のレコード数を取得する
-       long countBefore = categoryService.countCategories();
+    @Test
+    @WithUserDetails("taro.samurai@example.com")
+    @Transactional
+    public void 一般ユーザーとしてログイン済みの場合はカテゴリを登録せずに403エラーが発生する() throws Exception {
+        // テスト前のレコード数を取得する
+        long countBefore = categoryService.countCategories();
 
-       mockMvc.perform(post("/admin/categories/create").with(csrf()).param("name", "テストカテゴリ名"))
-              .andExpect(status().isForbidden());
+        mockMvc.perform(post("/admin/categories/create").with(Objects.requireNonNull(csrf())).param("name", "テストカテゴリ名"))
+                .andExpect(status().isForbidden());
 
-       // テスト後のレコード数を取得する
-       long countAfter = categoryService.countCategories();
+        // テスト後のレコード数を取得する
+        long countAfter = categoryService.countCategories();
 
-       // レコード数が変わっていないことを検証する
-       assertThat(countAfter).isEqualTo(countBefore);
-   }
+        // レコード数が変わっていないことを検証する
+        assertThat(countAfter).isEqualTo(countBefore);
+    }
 
-   @Test
-   @WithUserDetails("hanako.samurai@example.com")
-   @Transactional
-   public void 管理者としてログイン済みの場合はカテゴリ登録後にカテゴリ一覧ページにリダイレクトする() throws Exception {
-       // テスト前のレコード数を取得する
-       long countBefore = categoryService.countCategories();
+    @Test
+    @WithUserDetails("hanako.samurai@example.com")
+    @Transactional
+    public void 管理者としてログイン済みの場合はカテゴリ登録後にカテゴリ一覧ページにリダイレクトする() throws Exception {
+        // テスト前のレコード数を取得する
+        long countBefore = categoryService.countCategories();
 
-       mockMvc.perform(post("/admin/categories/create").with(csrf()).param("name", "テストカテゴリ名"))
-              .andExpect(status().is3xxRedirection())
-              .andExpect(redirectedUrl("/admin/categories"));
+        mockMvc.perform(post("/admin/categories/create").with(Objects.requireNonNull(csrf())).param("name", "テストカテゴリ名"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/categories"));
 
-       // テスト後のレコード数を取得する
-       long countAfter = categoryService.countCategories();
+        // テスト後のレコード数を取得する
+        long countAfter = categoryService.countCategories();
 
-       // レコード数が1つ増加していることを検証する
-       assertThat(countAfter).isEqualTo(countBefore + 1);
+        // レコード数が1つ増加していることを検証する
+        assertThat(countAfter).isEqualTo(countBefore + 1);
 
-       Category category = categoryService.findFirstCategoryByOrderByIdDesc();
-       assertThat(category.getName()).isEqualTo("テストカテゴリ名");
-   }
+        Category category = categoryService.findFirstCategoryByOrderByIdDesc();
+        assertThat(category.getName()).isEqualTo("テストカテゴリ名");
+    }
 
-   @Test
-   @Transactional
-   public void 未ログインの場合はカテゴリを更新せずにログインページにリダイレクトする() throws Exception {
-       mockMvc.perform(post("/admin/categories/1/update").with(csrf()).param("name", "テストカテゴリ名"))
-              .andExpect(status().is3xxRedirection())
-              .andExpect(redirectedUrl("http://localhost/login"));
+    @Test
+    @Transactional
+    public void 未ログインの場合はカテゴリを更新せずにログインページにリダイレクトする() throws Exception {
+        mockMvc.perform(
+                post("/admin/categories/1/update").with(Objects.requireNonNull(csrf())).param("name", "テストカテゴリ名"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost/login"));
 
-       Optional<Category> optionalCategory = categoryService.findCategoryById(1);
-       assertThat(optionalCategory).isPresent();
-       Category category = optionalCategory.get();
-       assertThat(category.getName()).isEqualTo("居酒屋");
-   }
+        Optional<Category> optionalCategory = categoryService.findCategoryById(1);
+        assertThat(optionalCategory).isPresent();
+        Category category = optionalCategory.get();
+        assertThat(category.getName()).isEqualTo("居酒屋");
+    }
 
-   @Test
-   @WithUserDetails("taro.samurai@example.com")
-   @Transactional
-   public void 一般ユーザーとしてログイン済みの場合はカテゴリを更新せずに403エラーが発生する() throws Exception {
-       mockMvc.perform(post("/admin/categories/1/update").with(csrf()).param("name", "テストカテゴリ名"))
-              .andExpect(status().isForbidden());
+    @Test
+    @WithUserDetails("taro.samurai@example.com")
+    @Transactional
+    public void 一般ユーザーとしてログイン済みの場合はカテゴリを更新せずに403エラーが発生する() throws Exception {
+        mockMvc.perform(
+                post("/admin/categories/1/update").with(Objects.requireNonNull(csrf())).param("name", "テストカテゴリ名"))
+                .andExpect(status().isForbidden());
 
-       Optional<Category> optionalCategory = categoryService.findCategoryById(1);
-       assertThat(optionalCategory).isPresent();
-       Category category = optionalCategory.get();
-       assertThat(category.getName()).isEqualTo("居酒屋");
-   }
+        Optional<Category> optionalCategory = categoryService.findCategoryById(1);
+        assertThat(optionalCategory).isPresent();
+        Category category = optionalCategory.get();
+        assertThat(category.getName()).isEqualTo("居酒屋");
+    }
 
-   @Test
-   @WithUserDetails("hanako.samurai@example.com")
-   @Transactional
-   public void 管理者としてログイン済みの場合はカテゴリ更新後にカテゴリ一覧ページにリダイレクトする() throws Exception {
-       mockMvc.perform(post("/admin/categories/1/update").with(csrf()).param("name", "テストカテゴリ名"))
-              .andExpect(status().is3xxRedirection())
-              .andExpect(redirectedUrl("/admin/categories"));
+    @Test
+    @WithUserDetails("hanako.samurai@example.com")
+    @Transactional
+    public void 管理者としてログイン済みの場合はカテゴリ更新後にカテゴリ一覧ページにリダイレクトする() throws Exception {
+        mockMvc.perform(
+                post("/admin/categories/1/update").with(Objects.requireNonNull(csrf())).param("name", "テストカテゴリ名"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/categories"));
 
-       Optional<Category> optionalCategory = categoryService.findCategoryById(1);
-       assertThat(optionalCategory).isPresent();
-       Category category = optionalCategory.get();
-       assertThat(category.getName()).isEqualTo("テストカテゴリ名");
-   }
+        Optional<Category> optionalCategory = categoryService.findCategoryById(1);
+        assertThat(optionalCategory).isPresent();
+        Category category = optionalCategory.get();
+        assertThat(category.getName()).isEqualTo("テストカテゴリ名");
+    }
 
-   @Test
-   @Transactional
-   public void 未ログインの場合はカテゴリを削除せずにログインページにリダイレクトする() throws Exception {
-       mockMvc.perform(post("/admin/categories/1/delete").with(csrf()))
-              .andExpect(status().is3xxRedirection())
-              .andExpect(redirectedUrl("http://localhost/login"));
+    @Test
+    @Transactional
+    public void 未ログインの場合はカテゴリを削除せずにログインページにリダイレクトする() throws Exception {
+        mockMvc.perform(post("/admin/categories/1/delete").with(Objects.requireNonNull(csrf())))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost/login"));
 
-       Optional<Category> optionalCategory = categoryService.findCategoryById(1);
-       assertThat(optionalCategory).isPresent();
-   }
+        Optional<Category> optionalCategory = categoryService.findCategoryById(1);
+        assertThat(optionalCategory).isPresent();
+    }
 
-   @Test
-   @WithUserDetails("taro.samurai@example.com")
-   @Transactional
-   public void 一般ユーザーとしてログイン済みの場合はカテゴリを削除せずに403エラーが発生する() throws Exception {
-       mockMvc.perform(post("/admin/categories/1/delete").with(csrf()))
-              .andExpect(status().isForbidden());
+    @Test
+    @WithUserDetails("taro.samurai@example.com")
+    @Transactional
+    public void 一般ユーザーとしてログイン済みの場合はカテゴリを削除せずに403エラーが発生する() throws Exception {
+        mockMvc.perform(post("/admin/categories/1/delete").with(Objects.requireNonNull(csrf())))
+                .andExpect(status().isForbidden());
 
-       Optional<Category> optionalCategory = categoryService.findCategoryById(1);
-       assertThat(optionalCategory).isPresent();
-   }
+        Optional<Category> optionalCategory = categoryService.findCategoryById(1);
+        assertThat(optionalCategory).isPresent();
+    }
 
-   @Test
-   @WithUserDetails("hanako.samurai@example.com")
-   @Transactional
-   public void 管理者としてログイン済みの場合はカテゴリ削除後にカテゴリ一覧ページにリダイレクトする() throws Exception {
-       mockMvc.perform(post("/admin/categories/1/delete").with(csrf()))
-              .andExpect(status().is3xxRedirection())
-              .andExpect(redirectedUrl("/admin/categories"));
+    @Test
+    @WithUserDetails("hanako.samurai@example.com")
+    @Transactional
+    public void 管理者としてログイン済みの場合はカテゴリ削除後にカテゴリ一覧ページにリダイレクトする() throws Exception {
+        mockMvc.perform(post("/admin/categories/1/delete").with(Objects.requireNonNull(csrf())))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/categories"));
 
-       Optional<Category> optionalCategory = categoryService.findCategoryById(1);
-       assertThat(optionalCategory).isEmpty();
-   }
+        Optional<Category> optionalCategory = categoryService.findCategoryById(1);
+        assertThat(optionalCategory).isEmpty();
+    }
 }

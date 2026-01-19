@@ -23,6 +23,7 @@ public class WebSecurityConfig {
 		this.customOAuth2UserService = customOAuth2UserService;
 	}
 
+	@SuppressWarnings("removal")
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http

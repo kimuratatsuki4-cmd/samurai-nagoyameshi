@@ -6,6 +6,8 @@ import com.example.nagoyameshi.entity.Company;
 import com.example.nagoyameshi.form.CompanyEditForm;
 import com.example.nagoyameshi.repository.CompanyRepository;
 
+import java.util.Objects;
+
 @Service
 public class CompanyService {
 	private final CompanyRepository companyRepository;
@@ -14,12 +16,12 @@ public class CompanyService {
 		super();
 		this.companyRepository = companyRepository;
 	}
-	
+
 	public Company findFirstCompanyByOrderByIdDesc() {
 		return companyRepository.findFirstByOrderByIdDesc();
-		
+
 	}
-	
+
 	public void updateCompany(Company company, CompanyEditForm companyEditForm) {
 		company.setName(companyEditForm.getName());
 		company.setPostalCode(companyEditForm.getPostalCode());
@@ -29,8 +31,8 @@ public class CompanyService {
 		company.setCapital(companyEditForm.getCapital());
 		company.setBusiness(companyEditForm.getBusiness());
 		company.setNumberOfEmployees(companyEditForm.getNumberOfEmployees());
-		
-		companyRepository.save(company);
+
+		companyRepository.save(Objects.requireNonNull(company));
 	}
 
 }

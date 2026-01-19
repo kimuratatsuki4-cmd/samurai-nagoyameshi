@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -82,7 +83,7 @@ public class RestaurantService {
 		restaurant.setClosingTime(restaurantRegisterForm.getClosingTime());
 		restaurant.setSeatingCapacity(restaurantRegisterForm.getSeatingCapacity());
 
-		restaurantRepository.save(restaurant);
+		restaurantRepository.save(Objects.requireNonNull(restaurant));
 
 		if (categoryIds != null) {
 			categoryRestaurantService.createCategoriesRestaurants(categoryIds, restaurant);
@@ -119,7 +120,7 @@ public class RestaurantService {
 		restaurant.setClosingTime(restaurantEditForm.getClosingTime());
 		restaurant.setSeatingCapacity(restaurantEditForm.getSeatingCapacity());
 
-		restaurantRepository.save(restaurant);
+		restaurantRepository.save(Objects.requireNonNull(restaurant));
 
 		if (categoryIds != null) {
 			categoryRestaurantService.syncCategoriesRestaurants(categoryIds, restaurant);
@@ -132,7 +133,7 @@ public class RestaurantService {
 
 	// 店舗情報を削除する
 	public void deleteRestaurant(Restaurant restaurant) {
-		restaurantRepository.delete(restaurant);
+		restaurantRepository.delete(Objects.requireNonNull(restaurant));
 	}
 
 	// =========================================================================
@@ -273,56 +274,59 @@ public class RestaurantService {
 
 		return restaurantRepository.findOpenRestaurants(currentTime, dayIndex, pageable);
 	}
-	
+
 	// 現在営業中 × 価格が安い順
-    public Page<Restaurant> findOpenRestaurantsOrderByLowestPriceAsc(Pageable pageable) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalTime currentTime = now.toLocalTime();
-        int dayIndex = now.getDayOfWeek().getValue();
-        if (dayIndex == 7) dayIndex = 0;
+	public Page<Restaurant> findOpenRestaurantsOrderByLowestPriceAsc(Pageable pageable) {
+		LocalDateTime now = LocalDateTime.now();
+		LocalTime currentTime = now.toLocalTime();
+		int dayIndex = now.getDayOfWeek().getValue();
+		if (dayIndex == 7)
+			dayIndex = 0;
 
-        return restaurantRepository.findOpenRestaurantsOrderByLowestPriceAsc(currentTime, dayIndex, pageable);
-    }
+		return restaurantRepository.findOpenRestaurantsOrderByLowestPriceAsc(currentTime, dayIndex, pageable);
+	}
 
-    // 現在営業中 × 評価が高い順
-    public Page<Restaurant> findOpenRestaurantsOrderByAverageScoreDesc(Pageable pageable) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalTime currentTime = now.toLocalTime();
-        int dayIndex = now.getDayOfWeek().getValue();
-        if (dayIndex == 7) dayIndex = 0;
+	// 現在営業中 × 評価が高い順
+	public Page<Restaurant> findOpenRestaurantsOrderByAverageScoreDesc(Pageable pageable) {
+		LocalDateTime now = LocalDateTime.now();
+		LocalTime currentTime = now.toLocalTime();
+		int dayIndex = now.getDayOfWeek().getValue();
+		if (dayIndex == 7)
+			dayIndex = 0;
 
-        return restaurantRepository.findOpenRestaurantsOrderByAverageScoreDesc(currentTime, dayIndex, pageable);
-    }
+		return restaurantRepository.findOpenRestaurantsOrderByAverageScoreDesc(currentTime, dayIndex, pageable);
+	}
 
-    // 現在営業中 × 予約数が多い順
-    public Page<Restaurant> findOpenRestaurantsOrderByReservationCountDesc(Pageable pageable) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalTime currentTime = now.toLocalTime();
-        int dayIndex = now.getDayOfWeek().getValue();
-        if (dayIndex == 7) dayIndex = 0;
+	// 現在営業中 × 予約数が多い順
+	public Page<Restaurant> findOpenRestaurantsOrderByReservationCountDesc(Pageable pageable) {
+		LocalDateTime now = LocalDateTime.now();
+		LocalTime currentTime = now.toLocalTime();
+		int dayIndex = now.getDayOfWeek().getValue();
+		if (dayIndex == 7)
+			dayIndex = 0;
 
-        return restaurantRepository.findOpenRestaurantsOrderByReservationCountDesc(currentTime, dayIndex, pageable);
-    }
-	
-	//--- 3.6.  指定された評価以上の店舗を検索する
-		public Page<Restaurant> findRestaurantsByMinRating(Double minRating, Pageable pageable) {
-			return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByAverageScoreDesc(minRating, pageable);
-		}
-		
-		// 評価で絞込 × 新着順
-	    public Page<Restaurant> findRestaurantsByMinRatingOrderByCreatedAtDesc(Double minRating, Pageable pageable) {
-	        return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByCreatedAtDesc(minRating, pageable);
-	    }
+		return restaurantRepository.findOpenRestaurantsOrderByReservationCountDesc(currentTime, dayIndex, pageable);
+	}
 
-	    // 評価で絞込 × 価格が安い順
-	    public Page<Restaurant> findRestaurantsByMinRatingOrderByLowestPriceAsc(Double minRating, Pageable pageable) {
-	        return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByLowestPriceAsc(minRating, pageable);
-	    }
+	// --- 3.6. 指定された評価以上の店舗を検索する
+	public Page<Restaurant> findRestaurantsByMinRating(Double minRating, Pageable pageable) {
+		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByAverageScoreDesc(minRating, pageable);
+	}
 
-	    // 評価で絞込 × 予約数が多い順
-	    public Page<Restaurant> findRestaurantsByMinRatingOrderByReservationCountDesc(Double minRating, Pageable pageable) {
-	        return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByReservationCountDesc(minRating, pageable);
-	    }
+	// 評価で絞込 × 新着順
+	public Page<Restaurant> findRestaurantsByMinRatingOrderByCreatedAtDesc(Double minRating, Pageable pageable) {
+		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByCreatedAtDesc(minRating, pageable);
+	}
+
+	// 評価で絞込 × 価格が安い順
+	public Page<Restaurant> findRestaurantsByMinRatingOrderByLowestPriceAsc(Double minRating, Pageable pageable) {
+		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByLowestPriceAsc(minRating, pageable);
+	}
+
+	// 評価で絞込 × 予約数が多い順
+	public Page<Restaurant> findRestaurantsByMinRatingOrderByReservationCountDesc(Double minRating, Pageable pageable) {
+		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByReservationCountDesc(minRating, pageable);
+	}
 
 	// =========================================================================
 	// 4. ユーティリティメソッド (画像処理、バリデーション)

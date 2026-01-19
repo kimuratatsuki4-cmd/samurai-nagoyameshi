@@ -64,7 +64,7 @@ public class FavoriteController {
 	 */
 	@PostMapping("/restaurants/{restaurantId}/favorites/create")
 	public String create(
-			@PathVariable(name = "restaurantId") Integer restaurantId,
+			@PathVariable(name = "restaurantId") int restaurantId,
 			@AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
 			RedirectAttributes redirectAttributes) {
 
@@ -92,7 +92,7 @@ public class FavoriteController {
 	 */
 	@PostMapping("/favorites/{favoriteId}/delete")
 	public String delete(
-			@PathVariable(name = "favoriteId") Integer favoriteId,
+			@PathVariable(name = "favoriteId") int favoriteId,
 			@AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
 			RedirectAttributes redirectAttributes,
 			HttpServletRequest httpServletRequest) {

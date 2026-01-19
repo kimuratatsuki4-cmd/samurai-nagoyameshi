@@ -1,5 +1,7 @@
 package com.example.nagoyameshi.service;
 
+import java.util.Objects;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +24,11 @@ public class VerificationTokenService {
 		verificationToken.setUser(user);
 		verificationToken.setToken(token);
 
-		verificationTokenRepository.save(verificationToken);
+		verificationTokenRepository.save(Objects.requireNonNull(verificationToken));
 	}
-	
-	public VerificationToken findVerificationTokenByToken(String token){
-        return verificationTokenRepository.findByToken(token);
-    }
+
+	public VerificationToken findVerificationTokenByToken(String token) {
+		return verificationTokenRepository.findByToken(token);
+	}
 
 }
