@@ -12,14 +12,13 @@ import com.example.nagoyameshi.entity.Reservation;
 import com.example.nagoyameshi.entity.Restaurant;
 import com.example.nagoyameshi.entity.User;
 import com.example.nagoyameshi.form.ReservationRegisterForm;
-import com.example.nagoyameshi.repository.ReservationRepository; // 🚨 DIのためにインポート
+import com.example.nagoyameshi.repository.ReservationRepository;
 
-@Service // サービスコンポーネントとして登録
+@Service
 public class ReservationService {
 
-    private final ReservationRepository reservationRepository; // 🚨 リポジトリをフィールドとして定義
+    private final ReservationRepository reservationRepository;
 
-    // コンストラクタインジェクション (DI)
     public ReservationService(ReservationRepository reservationRepository) {
         this.reservationRepository = reservationRepository;
     }

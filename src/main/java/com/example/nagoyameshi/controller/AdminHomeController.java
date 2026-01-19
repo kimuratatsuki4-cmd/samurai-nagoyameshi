@@ -29,14 +29,13 @@ public class AdminHomeController {
 		Integer totalMembers = totalFreeMembers + totalPaidMembers;
 
 		// 2. 店舗数の集計
-		Long totalRestaurants = restaurantService.countRestaurants(); // サービス層で全件数を取得
+		Long totalRestaurants = restaurantService.countRestaurants();
 		// 3. 予約数の集計
-		Long totalReservations = reservationService.countReservations(); // サービス層で総予約数を取得
+		Long totalReservations = reservationService.countReservations();
 		// 4. 月間売上の計算
 		// 売上 = 300 * 有料会員数 (totalPaidMembers)
 		Integer salesForThisMonth = 300 * totalPaidMembers;
 
-		// Modelインターフェースでビュー側へ変数を渡す
 		model.addAttribute("totalFreeMembers", totalFreeMembers);
 		model.addAttribute("totalPaidMembers", totalPaidMembers);
 		model.addAttribute("totalMembers", totalMembers);

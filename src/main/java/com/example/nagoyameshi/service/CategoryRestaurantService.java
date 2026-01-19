@@ -22,7 +22,6 @@ public class CategoryRestaurantService {
 		this.categoryRestaurantRepository = categoryRestaurantRepository;
 		this.categoryService = categoryService;
 
-		// TODO 自動生成されたコンストラクター・スタブ
 	}
 
 	public List<Integer> findCategoryIdsByRestaurantOrderByIdAsc(Restaurant restaurant) {

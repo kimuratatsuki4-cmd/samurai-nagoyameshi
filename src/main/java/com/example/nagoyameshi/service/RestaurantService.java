@@ -23,7 +23,7 @@ import com.example.nagoyameshi.form.RestaurantRegisterForm;
 import com.example.nagoyameshi.repository.RestaurantRepository;
 
 @Service
-@Transactional // トランザクションは通常クラス全体に適用
+@Transactional
 public class RestaurantService {
 	private final RestaurantRepository restaurantRepository;
 	private final CategoryRestaurantService categoryRestaurantService;
@@ -58,8 +58,6 @@ public class RestaurantService {
 
 	// 店舗情報を作成する
 	public void createRestaurant(RestaurantRegisterForm restaurantRegisterForm) {
-		// 実装は元のコードを参照（Transactionalアノテーションはクラスレベルで適用）
-		// ...
 		Restaurant restaurant = new Restaurant();
 		List<Integer> categoryIds = restaurantRegisterForm.getCategoryIds();
 		List<Integer> regularholidayIds = restaurantRegisterForm.getRegularHolidayIds();
@@ -96,8 +94,6 @@ public class RestaurantService {
 
 	// 店舗情報を更新する
 	public void updateRestaurant(RestaurantEditForm restaurantEditForm, Restaurant restaurant) {
-		// 実装は元のコードを参照（Transactionalアノテーションはクラスレベルで適用）
-		// ...
 		MultipartFile imageFile = restaurantEditForm.getImageFile();
 		List<Integer> categoryIds = restaurantEditForm.getCategoryIds();
 		List<Integer> regularholidayIds = restaurantEditForm.getRegularHolidayIds();
@@ -247,7 +243,6 @@ public class RestaurantService {
 			String addressKeyword,
 			String categoryNameKeyword,
 			Pageable pageable) {
-		// リポジトリメソッドの呼び出しに合わせて引数を調整
 		return restaurantRepository.findByNameLikeOrAddressLikeOrCategoryNameLikeOrderByReservationCountDesc(
 				nameKeyword,
 				addressKeyword, categoryNameKeyword, Objects.requireNonNull(pageable));
