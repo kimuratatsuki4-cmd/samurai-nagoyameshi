@@ -43,8 +43,11 @@ public class RestaurantRegisterForm {
    @NotNull(message = "座席数を入力してください。")
    @Min(value = 0, message = "座席数は0席以上に設定してください。")
    private Integer seatingCapacity;
-   
+
    private List<Integer> categoryIds;
-   
+
    private List<Integer> regularHolidayIds;
+
+   private Double latitude;
+   private Double longitude;
 }

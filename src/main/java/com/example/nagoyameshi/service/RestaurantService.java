@@ -80,6 +80,8 @@ public class RestaurantService {
 		restaurant.setOpeningTime(restaurantRegisterForm.getOpeningTime());
 		restaurant.setClosingTime(restaurantRegisterForm.getClosingTime());
 		restaurant.setSeatingCapacity(restaurantRegisterForm.getSeatingCapacity());
+		restaurant.setLatitude(restaurantRegisterForm.getLatitude());
+		restaurant.setLongitude(restaurantRegisterForm.getLongitude());
 
 		restaurantRepository.save(Objects.requireNonNull(restaurant));
 
@@ -115,6 +117,8 @@ public class RestaurantService {
 		restaurant.setOpeningTime(restaurantEditForm.getOpeningTime());
 		restaurant.setClosingTime(restaurantEditForm.getClosingTime());
 		restaurant.setSeatingCapacity(restaurantEditForm.getSeatingCapacity());
+		restaurant.setLatitude(restaurantEditForm.getLatitude());
+		restaurant.setLongitude(restaurantEditForm.getLongitude());
 
 		restaurantRepository.save(Objects.requireNonNull(restaurant));
 

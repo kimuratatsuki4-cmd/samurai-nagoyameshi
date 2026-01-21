@@ -164,7 +164,9 @@ public class AdminRestaurantController {
 				restaurant.getClosingTime(),
 				restaurant.getSeatingCapacity(),
 				categoryRestaurantService.findCategoryIdsByRestaurantOrderByIdAsc(restaurant),
-				regularHolidayRestaurantService.findRegularHolidayIdsByRestaurant(restaurant));
+				regularHolidayRestaurantService.findRegularHolidayIdsByRestaurant(restaurant),
+				restaurant.getLatitude(),
+				restaurant.getLongitude());
 
 		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("restaurantEditForm", restaurantEditForm);

@@ -1,3 +1,17 @@
+DROP TABLE IF EXISTS favorites;
+DROP TABLE IF EXISTS reservations;
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS regular_holiday_restaurant;
+DROP TABLE IF EXISTS category_restaurant;
+DROP TABLE IF EXISTS restaurants;
+DROP TABLE IF EXISTS regular_holidays;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS verification_tokens;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS companies;
+DROP TABLE IF EXISTS terms;
+
 CREATE TABLE IF NOT EXISTS roles
 (
    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -44,6 +58,8 @@ CREATE TABLE IF NOT EXISTS restaurants
    opening_time TIME NOT NULL,
    closing_time TIME NOT NULL,
    seating_capacity INT NOT NULL,
+   latitude DOUBLE,
+   longitude DOUBLE,
    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

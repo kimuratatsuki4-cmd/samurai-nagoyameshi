@@ -58,6 +58,12 @@ public class Restaurant {
 	@Column(name = "seating_capacity")
 	private Integer seatingCapacity;
 
+	@Column(name = "latitude")
+	private Double latitude;
+
+	@Column(name = "longitude")
+	private Double longitude;
+
 	@Column(name = "created_at", insertable = false, updatable = false)
 	private Timestamp createdAt;
 
