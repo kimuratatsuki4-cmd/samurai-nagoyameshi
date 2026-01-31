@@ -66,6 +66,8 @@ public class RestaurantController {
 				restaurantPage = restaurantService
 						.findRestaurantsByNameLikeOrAddressLikeOrCategoryNameLikeOrderByReservationCountDesc(keyword,
 								keyword, keyword, pageable);
+			} else if (order != null && order.equals("distanceAsc")) {
+				restaurantPage = restaurantService.findRestaurantsByKeywordOrderByDistanceAsc(keyword, pageable);
 			} else {
 				restaurantPage = restaurantService
 						.findRestaurantsByNameLikeOrAddressLikeOrCategoryNameLikeOrderByCreatedAtDesc(keyword, keyword,
@@ -81,6 +83,8 @@ public class RestaurantController {
 			} else if (order != null && order.equals("popularDesc")) {
 				restaurantPage = restaurantService.findRestaurantsByCategoryIdOrderByReservationCountDesc(categoryId,
 						pageable);
+			} else if (order != null && order.equals("distanceAsc")) {
+				restaurantPage = restaurantService.findRestaurantsByCategoryIdOrderByDistanceAsc(categoryId, pageable);
 			} else {
 				restaurantPage = restaurantService.findRestaurantsByCategoryIdOrderByCreatedAtDesc(categoryId,
 						pageable);
@@ -95,41 +99,48 @@ public class RestaurantController {
 			} else if (order != null && order.equals("popularDesc")) {
 				restaurantPage = restaurantService
 						.findRestaurantsByLowestPriceLessThanEqualOrderByReservationCountDesc(price, pageable);
+			} else if (order != null && order.equals("distanceAsc")) {
+				restaurantPage = restaurantService.findRestaurantsByPriceOrderByDistanceAsc(price, pageable);
 			} else {
 				restaurantPage = restaurantService.findRestaurantsByLowestPriceLessThanEqualOrderByCreatedAtDesc(price,
 						pageable);
 			}
 		} else if (Boolean.TRUE.equals(isOpen)) {
-            // ▼▼▼ : 営業中 × 並べ替え ▼▼▼
 			if (order != null && order.equals("lowestPriceAsc")) {
 				restaurantPage = restaurantService.findOpenRestaurantsOrderByLowestPriceAsc(pageable);
 			} else if (order != null && order.equals("ratingDesc")) {
 				restaurantPage = restaurantService.findOpenRestaurantsOrderByAverageScoreDesc(pageable);
 			} else if (order != null && order.equals("popularDesc")) {
 				restaurantPage = restaurantService.findOpenRestaurantsOrderByReservationCountDesc(pageable);
+			} else if (order != null && order.equals("distanceAsc")) {
+				restaurantPage = restaurantService.findOpenRestaurantsOrderByDistanceAsc(pageable);
 			} else {
 				// デフォルトは新着順相当(ID順または作成日順)
 				restaurantPage = restaurantService.findOpenRestaurants(pageable);
 			}
 		} else if (minRating != null) {
-            // ▼▼▼ : 評価絞込 × 並べ替え ▼▼▼
 			if (order != null && order.equals("lowestPriceAsc")) {
 				restaurantPage = restaurantService.findRestaurantsByMinRatingOrderByLowestPriceAsc(minRating, pageable);
 			} else if (order != null && order.equals("ratingDesc")) {
 				restaurantPage = restaurantService.findRestaurantsByMinRating(minRating, pageable);
 			} else if (order != null && order.equals("popularDesc")) {
-				restaurantPage = restaurantService.findRestaurantsByMinRatingOrderByReservationCountDesc(minRating, pageable);
+				restaurantPage = restaurantService.findRestaurantsByMinRatingOrderByReservationCountDesc(minRating,
+						pageable);
+			} else if (order != null && order.equals("distanceAsc")) {
+				restaurantPage = restaurantService.findRestaurantsByMinRatingOrderByDistanceAsc(minRating, pageable);
 			} else {
 				// デフォルトは新着順
 				restaurantPage = restaurantService.findRestaurantsByMinRatingOrderByCreatedAtDesc(minRating, pageable);
 			}
-		}else {
+		} else {
 			if (order != null && order.equals("lowestPriceAsc")) {
 				restaurantPage = restaurantService.findAllRestaurantsByOrderByLowestPriceAsc(pageable);
 			} else if (order != null && order.equals("ratingDesc")) {
 				restaurantPage = restaurantService.findAllRestaurantsByOrderByAverageScoreDesc(pageable);
 			} else if (order != null && order.equals("popularDesc")) {
 				restaurantPage = restaurantService.findAllRestaurantsByOrderByReservationCountDesc(pageable);
+			} else if (order != null && order.equals("distanceAsc")) {
+				restaurantPage = restaurantService.findAllRestaurantsOrderByDistanceAsc(pageable);
 			} else {
 				restaurantPage = restaurantService.findAllRestaurantsByOrderByCreatedAtDesc(pageable);
 			}
@@ -144,6 +155,7 @@ public class RestaurantController {
 		model.addAttribute("order", order);
 		model.addAttribute("isOpen", isOpen);
 		model.addAttribute("minRating", minRating);
+		model.addAttribute("order", order);
 		return "restaurants/index";
 	}
 

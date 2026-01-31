@@ -64,6 +64,9 @@ public class Restaurant {
 	@Column(name = "longitude")
 	private Double longitude;
 
+	@Transient
+	private Double distance;
+
 	@Column(name = "created_at", insertable = false, updatable = false)
 	private Timestamp createdAt;
 

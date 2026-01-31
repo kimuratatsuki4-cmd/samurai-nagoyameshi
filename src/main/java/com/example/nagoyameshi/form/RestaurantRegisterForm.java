@@ -48,6 +48,4 @@ public class RestaurantRegisterForm {
 
    private List<Integer> regularHolidayIds;
 
-   private Double latitude;
-   private Double longitude;
 }

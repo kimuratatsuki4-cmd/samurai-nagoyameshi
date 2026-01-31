@@ -7,10 +7,12 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,9 @@ import com.example.nagoyameshi.entity.Restaurant;
 import com.example.nagoyameshi.form.RestaurantEditForm;
 import com.example.nagoyameshi.form.RestaurantRegisterForm;
 import com.example.nagoyameshi.repository.RestaurantRepository;
+import com.google.maps.GeoApiContext;
+import com.google.maps.GeocodingApi;
+import com.google.maps.model.GeocodingResult;
 
 @Service
 @Transactional
@@ -28,6 +33,11 @@ public class RestaurantService {
 	private final RestaurantRepository restaurantRepository;
 	private final CategoryRestaurantService categoryRestaurantService;
 	private final RegularHolidayRestaurantService regularHolidayRestaurantService;
+
+	private static final Double NAGOYA_LAT = 35.170915;
+	private static final Double NAGOYA_LNG = 136.881537;
+	@Value("${google.map.api.key}")
+	private String apiKey;
 
 	public RestaurantService(RestaurantRepository restaurantRepository,
 			CategoryRestaurantService categoryRestaurantService,
@@ -80,8 +90,15 @@ public class RestaurantService {
 		restaurant.setOpeningTime(restaurantRegisterForm.getOpeningTime());
 		restaurant.setClosingTime(restaurantRegisterForm.getClosingTime());
 		restaurant.setSeatingCapacity(restaurantRegisterForm.getSeatingCapacity());
-		restaurant.setLatitude(restaurantRegisterForm.getLatitude());
-		restaurant.setLongitude(restaurantRegisterForm.getLongitude());
+
+		Map<String, Double> coordinates = getCoordinates(restaurantRegisterForm.getAddress());
+		if (coordinates != null) {
+			restaurant.setLatitude(coordinates.get("lat"));
+			restaurant.setLongitude(coordinates.get("lng"));
+		} else {
+			restaurant.setLatitude(null);
+			restaurant.setLongitude(null);
+		}
 
 		restaurantRepository.save(Objects.requireNonNull(restaurant));
 
@@ -117,8 +134,12 @@ public class RestaurantService {
 		restaurant.setOpeningTime(restaurantEditForm.getOpeningTime());
 		restaurant.setClosingTime(restaurantEditForm.getClosingTime());
 		restaurant.setSeatingCapacity(restaurantEditForm.getSeatingCapacity());
-		restaurant.setLatitude(restaurantEditForm.getLatitude());
-		restaurant.setLongitude(restaurantEditForm.getLongitude());
+
+		Map<String, Double> coordinates = getCoordinates(restaurantEditForm.getAddress());
+		if (coordinates != null) {
+			restaurant.setLatitude(coordinates.get("lat"));
+			restaurant.setLongitude(coordinates.get("lng"));
+		}
 
 		restaurantRepository.save(Objects.requireNonNull(restaurant));
 
@@ -342,9 +363,71 @@ public class RestaurantService {
 				Objects.requireNonNull(minRating), Objects.requireNonNull(pageable));
 	}
 
+	// 1. 全件 × 距離順
+	public Page<Restaurant> findAllRestaurantsOrderByDistanceAsc(Pageable pageable) {
+		return restaurantRepository.findAllByOrderByDistanceAsc(NAGOYA_LAT, NAGOYA_LNG, pageable);
+	}
+
+	// 2. キーワード × 距離順
+	public Page<Restaurant> findRestaurantsByKeywordOrderByDistanceAsc(String keyword, Pageable pageable) {
+		return restaurantRepository.findByKeywordOrderByDistanceAsc("%" + keyword + "%", NAGOYA_LAT, NAGOYA_LNG,
+				pageable);
+	}
+
+	// 3. カテゴリ × 距離順
+	public Page<Restaurant> findRestaurantsByCategoryIdOrderByDistanceAsc(Integer categoryId, Pageable pageable) {
+		return restaurantRepository.findByCategoryIdOrderByDistanceAsc(categoryId, NAGOYA_LAT, NAGOYA_LNG, pageable);
+	}
+
+	// 4. 価格 × 距離順
+	public Page<Restaurant> findRestaurantsByPriceOrderByDistanceAsc(Integer price, Pageable pageable) {
+		return restaurantRepository.findByPriceLessThanEqualOrderByDistanceAsc(price, NAGOYA_LAT, NAGOYA_LNG, pageable);
+	}
+
+	// 5. 営業中 × 距離順
+	public Page<Restaurant> findOpenRestaurantsOrderByDistanceAsc(Pageable pageable) {
+		LocalDateTime now = LocalDateTime.now();
+		LocalTime currentTime = now.toLocalTime();
+		int dayIndex = now.getDayOfWeek().getValue();
+		if (dayIndex == 7)
+			dayIndex = 0;
+
+		return restaurantRepository.findOpenRestaurantsOrderByDistanceAsc(currentTime, dayIndex, NAGOYA_LAT, NAGOYA_LNG,
+				pageable);
+	}
+
+	// 6. 評価 × 距離順
+	public Page<Restaurant> findRestaurantsByMinRatingOrderByDistanceAsc(Double minRating, Pageable pageable) {
+		return restaurantRepository.findByAverageScoreGreaterThanEqualOrderByDistanceAsc(minRating, NAGOYA_LAT,
+				NAGOYA_LNG, pageable);
+	}
+
 	// =========================================================================
 	// 4. ユーティリティメソッド (画像処理、バリデーション)
 	// =========================================================================
+
+	private Map<String, Double> getCoordinates(String address) {
+		try {
+			// APIコンテキストの作成
+			GeoApiContext context = new GeoApiContext.Builder()
+					.apiKey(apiKey)
+					.build();
+
+			// Geocoding APIを実行
+			GeocodingResult[] results = GeocodingApi.geocode(context, address).await();
+
+			// 結果が取得できた場合、最初の候補の座標を返す
+			if (results != null && results.length > 0) {
+				double lat = results[0].geometry.location.lat;
+				double lng = results[0].geometry.location.lng;
+				return Map.of("lat", lat, "lng", lng);
+			}
+		} catch (Exception e) {
+			// 取得失敗時（ネットワークエラーや無効な住所など）はエラーログを出してnullを返す
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	// UUIDを使って生成したファイル名を返す
 	public String generateNewFileName(String fileName) {

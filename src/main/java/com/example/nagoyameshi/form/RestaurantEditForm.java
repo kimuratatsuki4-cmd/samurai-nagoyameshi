@@ -51,7 +51,4 @@ public class RestaurantEditForm {
 	private List<Integer> categoryIds;
 
 	private List<Integer> regularHolidayIds;
-
-	private Double latitude;
-	private Double longitude;
 }
